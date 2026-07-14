@@ -30,9 +30,9 @@ class InvitationPage extends StatelessWidget {
               child: Column(
                 children: [
                   const _HeroSection(),
+                  const _IslamicSection(),
                   TornSection(
                     color: WeddingColors.burgundy,
-                    tearTop: false,
                     seed: 3,
                     child: const _WelcomeMessage(),
                   ),
@@ -135,12 +135,16 @@ class _HeroSection extends StatelessWidget {
                     size: 14, color: Colors.white, letterSpacing: 4),
               ),
               const Spacer(),
-              Text(WeddingConfig.groomShort,
-                  style: WeddingType.script(size: 64, shadows: _textShadow)),
+              _heroName(WeddingConfig.groomName),
+              const SizedBox(height: 6),
+              _parentLine('SON OF ${WeddingConfig.groomFatherName}'),
+              const SizedBox(height: 10),
               Text('&',
                   style: WeddingType.script(size: 36, shadows: _textShadow)),
-              Text(WeddingConfig.brideShort,
-                  style: WeddingType.script(size: 64, shadows: _textShadow)),
+              const SizedBox(height: 10),
+              _heroName(WeddingConfig.brideName),
+              const SizedBox(height: 6),
+              _parentLine('DAUGHTER OF ${WeddingConfig.brideFatherName}'),
               const Spacer(flex: 2),
             ],
           ),
@@ -154,6 +158,32 @@ class _HeroSection extends StatelessWidget {
     );
   }
 
+  /// "Son of / Daughter of" line under each name.
+  Widget _parentLine(String text) {
+    return Text(
+      text,
+      textAlign: TextAlign.center,
+      style: WeddingType.caps(
+        size: 12,
+        color: Colors.white.withValues(alpha: 0.92),
+        letterSpacing: 3,
+      ).copyWith(shadows: _textShadow),
+    );
+  }
+
+  /// Full name in script, scaled down if it is too wide for the screen.
+  Widget _heroName(String name) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Text(name,
+            maxLines: 1,
+            style: WeddingType.script(size: 58, shadows: _textShadow)),
+      ),
+    );
+  }
+
   static final List<Shadow> _textShadow = [
     Shadow(
       color: const Color(0xFF2E3A55).withValues(alpha: 0.55),
@@ -161,6 +191,74 @@ class _HeroSection extends StatelessWidget {
       blurRadius: 10,
     ),
   ];
+}
+
+// ---------------------------------------------------------------------------
+// Marriage in Islam
+// ---------------------------------------------------------------------------
+
+class _IslamicSection extends StatelessWidget {
+  const _IslamicSection();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 56, horizontal: 30),
+      child: RevealOnScroll(
+        child: Column(
+          children: [
+            Text(
+              'Marriage in Islam',
+              style: WeddingType.script(size: 34, color: WeddingColors.burgundy),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 22),
+            const OrnamentDivider(),
+            const SizedBox(height: 26),
+            Text(
+              'وَمِنْ آيَاتِهِ أَنْ خَلَقَ لَكُم مِّنْ أَنفُسِكُمْ أَزْوَاجًا لِّتَسْكُنُوا إِلَيْهَا وَجَعَلَ بَيْنَكُم مَّوَدَّةً وَرَحْمَةً ۚ إِنَّ فِي ذَٰلِكَ لَآيَاتٍ لِّقَوْمٍ يَتَفَكَّرُونَ',
+              textDirection: TextDirection.rtl,
+              textAlign: TextAlign.center,
+              style: WeddingType.arabic(
+                size: 22,
+                color: WeddingColors.burgundy,
+              ),
+            ),
+            const SizedBox(height: 18),
+            Text(
+              '"And among His signs is that He created for you spouses from '
+              'among yourselves, so that you may find tranquillity in them; '
+              'and He placed between you love and mercy. Indeed, in that are '
+              'signs for people who reflect."',
+              style: WeddingType.serif(size: 17.5).copyWith(
+                fontStyle: FontStyle.italic,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'SURAH AR-RUM · 30:21',
+              style: WeddingType.caps(
+                size: 11,
+                color: WeddingColors.gold,
+                letterSpacing: 3,
+              ),
+            ),
+            const SizedBox(height: 26),
+            const OrnamentDivider(),
+            const SizedBox(height: 26),
+            Text(
+              'Nikkah is a sacred covenant and a beautiful Sunnah — with the '
+              'blessings of Allah and the prayers of our loved ones, we begin '
+              'this journey of love, mercy and tranquillity together.',
+              style: WeddingType.serif(size: 17),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -359,13 +457,97 @@ class _EventSection extends StatelessWidget {
   }
 }
 
-class _ScheduleTimeline extends StatelessWidget {
+/// Schedule timeline with a rose that travels along the centre line as the
+/// page scrolls: it holds a fixed height on screen, so it glides from the
+/// first event point to the last while the schedule moves beneath it, parking
+/// at either end when the section enters or leaves the viewport.
+class _ScheduleTimeline extends StatefulWidget {
   final List<ScheduleItem> items;
   final Color color;
   const _ScheduleTimeline({required this.items, required this.color});
 
   @override
+  State<_ScheduleTimeline> createState() => _ScheduleTimelineState();
+}
+
+class _ScheduleTimelineState extends State<_ScheduleTimeline> {
+  static const double _flowerSize = 48;
+
+  /// Fraction of the viewport height where the flower rides on screen.
+  static const double _anchor = 0.55;
+
+  final ValueNotifier<double> _flowerTop = ValueNotifier(0);
+  ScrollPosition? _position;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _update());
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final position = Scrollable.maybeOf(context)?.position;
+    if (!identical(position, _position)) {
+      _position?.removeListener(_update);
+      _position = position;
+      _position?.addListener(_update);
+    }
+  }
+
+  @override
+  void dispose() {
+    _position?.removeListener(_update);
+    _flowerTop.dispose();
+    super.dispose();
+  }
+
+  void _update() {
+    if (!mounted) return;
+    final box = context.findRenderObject() as RenderBox?;
+    if (box == null || !box.attached || !box.hasSize) return;
+    final top = box.localToGlobal(Offset.zero).dy;
+    final viewportHeight = MediaQuery.of(context).size.height;
+    final maxTop = box.size.height - _flowerSize;
+    if (maxTop <= 0) return;
+    final target = viewportHeight * _anchor - top - _flowerSize / 2;
+    _flowerTop.value = target.clamp(0.0, maxTop);
+  }
+
+  @override
   Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        _buildRows(),
+        // Travelling rose, always centred on the timeline's vertical line.
+        Positioned.fill(
+          child: IgnorePointer(
+            child: ValueListenableBuilder<double>(
+              valueListenable: _flowerTop,
+              builder: (context, top, child) => Align(
+                alignment: Alignment.topCenter,
+                child: Padding(
+                  padding: EdgeInsets.only(top: top),
+                  child: child,
+                ),
+              ),
+              child: Image.asset(
+                'assets/flowers/flower2.webp',
+                width: _flowerSize,
+                height: _flowerSize,
+                fit: BoxFit.contain,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRows() {
+    final items = widget.items;
+    final color = widget.color;
     return Column(
       children: [
         for (var i = 0; i < items.length; i++)

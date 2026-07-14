@@ -1,7 +1,13 @@
 {
   "permissions": {
     "allow": [
-      "Bash(file flower*)"
+      "Bash(file flower*)",
+      "Bash(curl -s -o /dev/null -w \"server: %{http_code}\\\\n\" http://localhost:8660/)",
+      "Bash(curl -s -A \"Mozilla/5.0 \\(Macintosh; Intel Mac OS X 10_15_7\\) AppleWebKit/537.36 \\(KHTML, like Gecko\\) Chrome/126.0 Safari/537.36\" \"https://pixabay.com/images/search/wedding%20couple%20illustration/\" -o /private/tmp/claude-501/-Users-suleman-Documents-wedding-invite-wedding-invitation-app/b1070438-9c01-4364-bfdd-18920441a69a/scratchpad/pixabay.html -w \"%{http_code}\\\\n\")",
+      "Bash(curl -s \"https://api.openverse.org/v1/images/?q=wedding%20couple%20illustration&license=cc0,pdm&page_size=20\")",
+      "Bash(python3 -c ' *)",
+      "Bash(file /Users/suleman/Documents/wedding_invite/wedding_invitation_app/assets/couple/couple.*)",
+      "Bash(mv couples.png couple.png)"
     ]
   }
 }

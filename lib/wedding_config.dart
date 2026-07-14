@@ -12,6 +12,9 @@ class WeddingConfig {
   static const String groomShort = 'Suleman';
   static const String brideShort = 'Mehrunisa';
 
+  static const String groomFatherName = 'Rizwan Ahmad';
+  static const String brideFatherName = 'Zahid Rashid';
+
   /// Monogram shown on the wax seal of the envelope.
   static const String sealMonogram = 'S ♥ M';
 

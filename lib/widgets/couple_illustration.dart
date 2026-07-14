@@ -1,24 +1,56 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../theme.dart';
-import 'floral.dart';
 
-/// A stylised, hand-drawn-style silhouette of the couple — groom in a
-/// sherwani and kulla cap, bride in a lehenga with a flowing dupatta —
-/// holding hands beneath an arch of peonies. Used instead of photographs.
+/// The couple artwork in a cream medallion arched with the wedding flowers.
+///
+/// If assets/couple/couple.png (or .webp) exists it is shown tinted in the
+/// wedding burgundy — drop in any transparent-background silhouette and it
+/// matches the colour scheme automatically. Until then, the built-in painted
+/// silhouette is used.
 class CoupleIllustration extends StatelessWidget {
   final double height;
   const CoupleIllustration({super.key, this.height = 340});
 
+  /// Asset key of the user-provided silhouette, or null. Resolved once.
+  static Future<String?>? _coupleAsset;
+
+  static Future<String?> _resolveCoupleAsset() async {
+    for (final ext in ['png', 'webp']) {
+      final key = 'assets/couple/couple.$ext';
+      try {
+        await rootBundle.load(key);
+        return key;
+      } catch (_) {
+        // Try the next extension.
+      }
+    }
+    return null;
+  }
+
+  // Flower arch inside the medallion: (left, top, width) as fractions,
+  // following the oval frame so no bloom is lost to the rounded corners.
+  static const List<({double left, double top, double width})> _arch = [
+    (left: 0.10, top: 0.140, width: 0.16),
+    (left: 0.26, top: 0.055, width: 0.15),
+    (left: 0.425, top: 0.030, width: 0.16),
+    (left: 0.60, top: 0.055, width: 0.15),
+    (left: 0.74, top: 0.130, width: 0.17),
+  ];
+
   @override
   Widget build(BuildContext context) {
+    final width = height * 0.82;
     return Container(
       height: height,
-      width: height * 0.82,
+      width: width,
       decoration: BoxDecoration(
-        color: WeddingColors.cream,
+        gradient: const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0xFFFDF8EF), Color(0xFFF3E7D3)],
+        ),
         borderRadius: BorderRadius.circular(height / 2),
         border: Border.all(
           color: WeddingColors.gold.withValues(alpha: 0.75),
@@ -34,186 +66,269 @@ class CoupleIllustration extends StatelessWidget {
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(height / 2),
-        child: CustomPaint(painter: _CouplePainter()),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            FutureBuilder<String?>(
+              future: _coupleAsset ??= _resolveCoupleAsset(),
+              builder: (context, snapshot) {
+                final asset = snapshot.data;
+                if (asset == null) {
+                  return const CustomPaint(
+                      painter: CoupleSilhouettePainter());
+                }
+                return Padding(
+                  padding: EdgeInsets.only(
+                    top: height * 0.26,
+                    bottom: height * 0.08,
+                    left: width * 0.05,
+                    right: width * 0.05,
+                  ),
+                  child: Image.asset(
+                    asset,
+                    fit: BoxFit.contain,
+                    // Tint the silhouette to the wedding burgundy.
+                    color: CoupleSilhouettePainter.silhouetteColor,
+                    colorBlendMode: BlendMode.srcIn,
+                    filterQuality: FilterQuality.medium,
+                  ),
+                );
+              },
+            ),
+            for (var i = 0; i < _arch.length; i++)
+              Positioned(
+                left: width * _arch[i].left,
+                top: height * _arch[i].top,
+                width: width * _arch[i].width,
+                child: Image.asset(
+                  'assets/flowers/flower${i + 1}.webp',
+                  fit: BoxFit.contain,
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
 }
 
-class _CouplePainter extends CustomPainter {
-  static const Color _silhouette = Color(0xFF4A0A20);
+/// The couple silhouette itself. All coordinates are fractions of the canvas
+/// (w = width, h = height ≈ 1.22·w), tuned for the medallion frame.
+class CoupleSilhouettePainter extends CustomPainter {
+  const CoupleSilhouettePainter();
+
+  /// Deep burgundy used for the figures; also used to tint the
+  /// user-provided silhouette image.
+  static const Color silhouetteColor = Color(0xFF4A0A20);
+  static const Color _ink = silhouetteColor;
+  static const Color _gold = Color(0xFFC9A24B);
 
   @override
   void paint(Canvas canvas, Size size) {
     final w = size.width;
     final h = size.height;
+    final ink = Paint()..color = _ink;
 
     // Soft radial glow behind the couple.
     canvas.drawCircle(
-      Offset(w * 0.5, h * 0.52),
-      w * 0.42,
+      Offset(w * 0.5, h * 0.55),
+      w * 0.40,
       Paint()
         ..shader = RadialGradient(
           colors: [
-            WeddingColors.gold.withValues(alpha: 0.22),
-            WeddingColors.gold.withValues(alpha: 0.0),
+            _gold.withValues(alpha: 0.20),
+            _gold.withValues(alpha: 0.0),
           ],
         ).createShader(
-          Rect.fromCircle(center: Offset(w * 0.5, h * 0.52), radius: w * 0.42),
+          Rect.fromCircle(center: Offset(w * 0.5, h * 0.55), radius: w * 0.40),
         ),
     );
-
-    _paintFloralArch(canvas, size);
-
-    final ink = Paint()
-      ..color = _silhouette
-      ..style = PaintingStyle.fill;
 
     // Ground shadow.
     canvas.drawOval(
       Rect.fromCenter(
-        center: Offset(w * 0.5, h * 0.875),
-        width: w * 0.52,
-        height: h * 0.035,
+        center: Offset(w * 0.52, h * 0.865),
+        width: w * 0.46,
+        height: h * 0.022,
       ),
-      Paint()..color = _silhouette.withValues(alpha: 0.18),
+      Paint()..color = _ink.withValues(alpha: 0.16),
     );
 
-    _paintGroom(canvas, size, ink);
-    _paintBride(canvas, size, ink);
+    _paintGroom(canvas, w, h, ink);
+    _paintBride(canvas, w, h, ink);
 
-    // Joined hands: a small heart where the arms meet.
-    _paintHeart(canvas, Offset(w * 0.505, h * 0.545), w * 0.030,
-        Paint()..color = const Color(0xFF8E2242));
+    // Clasped hands.
+    canvas.drawCircle(Offset(w * 0.500, h * 0.510), w * 0.016, ink);
+
+    // Little gold hearts drifting up from the joined hands.
+    _heart(canvas, Offset(w * 0.500, h * 0.455), w * 0.014,
+        _gold.withValues(alpha: 0.95));
+    _heart(canvas, Offset(w * 0.520, h * 0.415), w * 0.010,
+        _gold.withValues(alpha: 0.65));
+    _heart(canvas, Offset(w * 0.488, h * 0.383), w * 0.0075,
+        _gold.withValues(alpha: 0.40));
   }
 
-  void _paintFloralArch(Canvas canvas, Size size) {
-    final w = size.width;
-    final h = size.height;
-    const colors = [
-      Color(0xFF7A1230),
-      Color(0xFFF4EAD8),
-      Color(0xFF5E0B26),
-      Color(0xFFF4EAD8),
-      Color(0xFF7A1230),
-    ];
-    // Blooms along the top arc of the frame.
-    for (int i = 0; i < 7; i++) {
-      final t = i / 6.0;
-      final angle = math.pi * (1.15 - t * 1.3); // sweep across the top
-      final cx = w * 0.5 + math.cos(angle) * w * 0.40;
-      final cy = h * 0.30 - math.sin(angle) * h * 0.20;
-      paintPeony(
-        canvas,
-        Offset(cx, cy),
-        w * (i.isEven ? 0.055 : 0.042),
-        colors[i % colors.length],
-        rotation: t * 2.2,
-      );
+  void _paintGroom(Canvas canvas, double w, double h, Paint ink) {
+    // Head.
+    canvas.drawCircle(Offset(w * 0.355, h * 0.315), w * 0.048, ink);
+
+    // Turban.
+    final turban = Path()
+      ..moveTo(w * 0.305, h * 0.310)
+      ..quadraticBezierTo(w * 0.315, h * 0.252, w * 0.360, h * 0.248)
+      ..quadraticBezierTo(w * 0.402, h * 0.252, w * 0.406, h * 0.308)
+      ..quadraticBezierTo(w * 0.355, h * 0.290, w * 0.305, h * 0.310)
+      ..close();
+    canvas.drawPath(turban, ink);
+    // Gold turban band + turra plume.
+    canvas.drawLine(
+      Offset(w * 0.312, h * 0.301),
+      Offset(w * 0.400, h * 0.299),
+      Paint()
+        ..color = _gold
+        ..strokeWidth = w * 0.007
+        ..strokeCap = StrokeCap.round,
+    );
+    canvas.drawCircle(Offset(w * 0.396, h * 0.244), w * 0.010,
+        Paint()..color = _gold);
+    canvas.drawLine(
+      Offset(w * 0.396, h * 0.252),
+      Offset(w * 0.394, h * 0.270),
+      Paint()
+        ..color = _gold
+        ..strokeWidth = w * 0.005,
+    );
+
+    // Sherwani: rounded shoulders, gentle waist, flared knee-length hem.
+    final body = Path()
+      ..moveTo(w * 0.355, h * 0.362)
+      ..quadraticBezierTo(w * 0.302, h * 0.372, w * 0.297, h * 0.402)
+      ..cubicTo(w * 0.290, h * 0.455, w * 0.294, h * 0.510, w * 0.292,
+          h * 0.560)
+      ..quadraticBezierTo(w * 0.288, h * 0.630, w * 0.293, h * 0.668)
+      ..lineTo(w * 0.430, h * 0.668)
+      ..quadraticBezierTo(w * 0.436, h * 0.600, w * 0.430, h * 0.535)
+      ..cubicTo(w * 0.426, h * 0.475, w * 0.424, h * 0.432, w * 0.420,
+          h * 0.408)
+      ..quadraticBezierTo(w * 0.423, h * 0.385, w * 0.403, h * 0.382)
+      ..close();
+    canvas.drawPath(body, ink);
+    // Gold button line down the sherwani front.
+    canvas.drawLine(
+      Offset(w * 0.408, h * 0.405),
+      Offset(w * 0.412, h * 0.560),
+      Paint()
+        ..color = _gold.withValues(alpha: 0.85)
+        ..strokeWidth = w * 0.004,
+    );
+
+    // Arm reaching to the bride.
+    canvas.drawPath(
+      Path()
+        ..moveTo(w * 0.405, h * 0.400)
+        ..quadraticBezierTo(w * 0.470, h * 0.442, w * 0.494, h * 0.505),
+      Paint()
+        ..color = _ink
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = w * 0.030
+        ..strokeCap = StrokeCap.round,
+    );
+
+    // Trousers.
+    canvas.drawRect(
+        Rect.fromLTRB(w * 0.322, h * 0.668, w * 0.352, h * 0.830), ink);
+    canvas.drawRect(
+        Rect.fromLTRB(w * 0.376, h * 0.668, w * 0.406, h * 0.830), ink);
+
+    // Khussa shoes, toes curling towards the bride.
+    for (final x in [0.316, 0.370]) {
+      canvas.drawOval(
+          Rect.fromLTRB(w * x, h * 0.824, w * (x + 0.052), h * 0.842), ink);
+      canvas.drawCircle(
+          Offset(w * (x + 0.052), h * 0.827), w * 0.007, ink);
     }
   }
 
-  void _paintGroom(Canvas canvas, Size size, Paint ink) {
-    final w = size.width;
-    final h = size.height;
-
+  void _paintBride(Canvas canvas, double w, double h, Paint ink) {
     // Head.
-    canvas.drawCircle(Offset(w * 0.395, h * 0.395), w * 0.048, ink);
-    // Kulla cap with a small turra plume.
-    final cap = Path()
-      ..moveTo(w * 0.352, h * 0.383)
-      ..quadraticBezierTo(w * 0.395, h * 0.318, w * 0.438, h * 0.383)
-      ..close();
-    canvas.drawPath(cap, ink);
-    canvas.drawCircle(Offset(w * 0.432, h * 0.335), w * 0.012, ink);
+    canvas.drawCircle(Offset(w * 0.615, h * 0.335), w * 0.043, ink);
+    // Gold tikka on the forehead.
+    canvas.drawCircle(Offset(w * 0.583, h * 0.320), w * 0.007,
+        Paint()..color = _gold);
 
-    // Sherwani body: high collar, straight shoulders, gentle flare at knee.
-    final body = Path()
-      ..moveTo(w * 0.395, h * 0.435) // neck
-      ..lineTo(w * 0.330, h * 0.465) // left shoulder
-      ..quadraticBezierTo(w * 0.312, h * 0.60, w * 0.330, h * 0.715) // side
-      ..lineTo(w * 0.462, h * 0.715)
-      ..quadraticBezierTo(w * 0.472, h * 0.58, w * 0.455, h * 0.468)
-      ..close();
-    canvas.drawPath(body, ink);
-
-    // Legs.
-    canvas.drawRect(
-        Rect.fromLTRB(w * 0.352, h * 0.715, w * 0.382, h * 0.868), ink);
-    canvas.drawRect(
-        Rect.fromLTRB(w * 0.408, h * 0.715, w * 0.438, h * 0.868), ink);
-    // Khussa shoes with a slight upturned toe.
-    canvas.drawOval(
-        Rect.fromLTRB(w * 0.340, h * 0.856, w * 0.392, h * 0.876), ink);
-    canvas.drawOval(
-        Rect.fromLTRB(w * 0.400, h * 0.856, w * 0.452, h * 0.876), ink);
-
-    // Arm reaching to the bride.
-    final arm = Paint()
-      ..color = ink.color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = w * 0.028
-      ..strokeCap = StrokeCap.round;
-    canvas.drawPath(
-      Path()
-        ..moveTo(w * 0.448, h * 0.482)
-        ..quadraticBezierTo(w * 0.492, h * 0.512, w * 0.502, h * 0.548),
-      arm,
-    );
-  }
-
-  void _paintBride(Canvas canvas, Size size, Paint ink) {
-    final w = size.width;
-    final h = size.height;
-
-    // Head.
-    canvas.drawCircle(Offset(w * 0.615, h * 0.415), w * 0.042, ink);
-
-    // Dupatta: crescent flowing over the head and down the back.
+    // Dupatta: a wide veil sweeping over the head and down her back,
+    // merging into the lehenga.
     final dupatta = Path()
-      ..moveTo(w * 0.568, h * 0.418)
-      ..quadraticBezierTo(w * 0.598, h * 0.335, w * 0.668, h * 0.395)
-      ..quadraticBezierTo(w * 0.712, h * 0.44, w * 0.708, h * 0.55)
-      ..quadraticBezierTo(w * 0.688, h * 0.47, w * 0.652, h * 0.432)
-      ..quadraticBezierTo(w * 0.612, h * 0.372, w * 0.568, h * 0.418)
+      ..moveTo(w * 0.582, h * 0.312)
+      ..quadraticBezierTo(w * 0.615, h * 0.262, w * 0.660, h * 0.292)
+      ..quadraticBezierTo(w * 0.724, h * 0.345, w * 0.744, h * 0.455)
+      ..quadraticBezierTo(w * 0.758, h * 0.565, w * 0.738, h * 0.660)
+      ..quadraticBezierTo(w * 0.706, h * 0.555, w * 0.688, h * 0.465)
+      ..quadraticBezierTo(w * 0.664, h * 0.352, w * 0.582, h * 0.312)
       ..close();
     canvas.drawPath(dupatta, ink);
+    // Gold edge along the veil.
+    canvas.drawPath(
+      Path()
+        ..moveTo(w * 0.660, h * 0.292)
+        ..quadraticBezierTo(w * 0.724, h * 0.345, w * 0.744, h * 0.455)
+        ..quadraticBezierTo(w * 0.758, h * 0.565, w * 0.738, h * 0.660),
+      Paint()
+        ..color = _gold.withValues(alpha: 0.8)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = w * 0.005,
+    );
 
     // Bodice.
     final bodice = Path()
-      ..moveTo(w * 0.615, h * 0.452)
-      ..lineTo(w * 0.568, h * 0.478)
-      ..lineTo(w * 0.585, h * 0.565)
-      ..lineTo(w * 0.648, h * 0.565)
-      ..lineTo(w * 0.662, h * 0.478)
+      ..moveTo(w * 0.615, h * 0.375)
+      ..lineTo(w * 0.578, h * 0.396)
+      ..quadraticBezierTo(w * 0.568, h * 0.442, w * 0.585, h * 0.492)
+      ..lineTo(w * 0.648, h * 0.492)
+      ..quadraticBezierTo(w * 0.662, h * 0.442, w * 0.652, h * 0.396)
       ..close();
     canvas.drawPath(bodice, ink);
 
-    // Lehenga: full flared skirt with a softly scalloped hem.
-    final skirt = Path()
-      ..moveTo(w * 0.585, h * 0.560)
-      ..quadraticBezierTo(w * 0.520, h * 0.72, w * 0.502, h * 0.862)
-      ..quadraticBezierTo(w * 0.560, h * 0.876, w * 0.617, h * 0.868)
-      ..quadraticBezierTo(w * 0.675, h * 0.876, w * 0.732, h * 0.862)
-      ..quadraticBezierTo(w * 0.712, h * 0.72, w * 0.648, h * 0.560)
-      ..close();
-    canvas.drawPath(skirt, ink);
-
     // Arm reaching to the groom.
-    final arm = Paint()
-      ..color = ink.color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = w * 0.024
-      ..strokeCap = StrokeCap.round;
     canvas.drawPath(
       Path()
-        ..moveTo(w * 0.572, h * 0.492)
-        ..quadraticBezierTo(w * 0.528, h * 0.516, w * 0.512, h * 0.548),
-      arm,
+        ..moveTo(w * 0.582, h * 0.412)
+        ..quadraticBezierTo(w * 0.530, h * 0.450, w * 0.508, h * 0.505),
+      Paint()
+        ..color = _ink
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = w * 0.026
+        ..strokeCap = StrokeCap.round,
+    );
+
+    // Lehenga: smooth A-line flare with a softly scalloped hem.
+    final lehenga = Path()
+      ..moveTo(w * 0.583, h * 0.486)
+      ..cubicTo(w * 0.545, h * 0.60, w * 0.515, h * 0.72, w * 0.505,
+          h * 0.830)
+      ..quadraticBezierTo(w * 0.545, h * 0.846, w * 0.585, h * 0.836)
+      ..quadraticBezierTo(w * 0.630, h * 0.850, w * 0.672, h * 0.836)
+      ..quadraticBezierTo(w * 0.716, h * 0.848, w * 0.755, h * 0.830)
+      ..cubicTo(w * 0.748, h * 0.71, w * 0.718, h * 0.60, w * 0.652,
+          h * 0.486)
+      ..close();
+    canvas.drawPath(lehenga, ink);
+    // Gold hemline following the scallops.
+    canvas.drawPath(
+      Path()
+        ..moveTo(w * 0.510, h * 0.816)
+        ..quadraticBezierTo(w * 0.548, h * 0.831, w * 0.586, h * 0.821)
+        ..quadraticBezierTo(w * 0.630, h * 0.835, w * 0.671, h * 0.821)
+        ..quadraticBezierTo(w * 0.713, h * 0.833, w * 0.750, h * 0.816),
+      Paint()
+        ..color = _gold.withValues(alpha: 0.9)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = w * 0.006,
     );
   }
 
-  void _paintHeart(Canvas canvas, Offset c, double r, Paint paint) {
+  void _heart(Canvas canvas, Offset c, double r, Color color) {
     final path = Path()
       ..moveTo(c.dx, c.dy + r)
       ..cubicTo(c.dx - r * 1.6, c.dy - r * 0.3, c.dx - r * 0.7, c.dy - r * 1.4,
@@ -221,7 +336,7 @@ class _CouplePainter extends CustomPainter {
       ..cubicTo(c.dx + r * 0.7, c.dy - r * 1.4, c.dx + r * 1.6, c.dy - r * 0.3,
           c.dx, c.dy + r)
       ..close();
-    canvas.drawPath(path, paint);
+    canvas.drawPath(path, Paint()..color = color);
   }
 
   @override
