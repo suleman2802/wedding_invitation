@@ -15,8 +15,7 @@ class WeddingInvitationApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title:
-          '${WeddingConfig.groomShort} & ${WeddingConfig.brideShort} — Wedding Invitation',
+      title: "${WeddingConfig.groomShort}'s Wedding Invitation",
       debugShowCheckedModeBanner: false,
       theme: buildWeddingTheme(),
       home: const _Root(),

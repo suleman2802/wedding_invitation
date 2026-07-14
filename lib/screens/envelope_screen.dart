@@ -106,12 +106,19 @@ class _EnvelopeOverlayState extends State<EnvelopeOverlay>
                         math.min(constraints.maxWidth * 0.88, 420.0);
                     final h = math.min(
                         constraints.maxHeight * 0.72, w * 1.35);
-                    return Transform.scale(
-                      scale: 1 + _fadeOut.value * 0.25,
-                      child: SizedBox(
-                        width: w,
-                        height: h,
-                        child: _buildEnvelope(w, h),
+                    // Gentle idle bob while waiting to be opened.
+                    final bob = math.sin(_pulse.value * math.pi) *
+                        6 *
+                        (1 - _open.value);
+                    return Transform.translate(
+                      offset: Offset(0, bob),
+                      child: Transform.scale(
+                        scale: 1 + _fadeOut.value * 0.25,
+                        child: SizedBox(
+                          width: w,
+                          height: h,
+                          child: _buildEnvelope(w, h),
+                        ),
                       ),
                     );
                   },

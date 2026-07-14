@@ -1,11 +1,11 @@
 {
-    "name": "wedding_invitation_app",
-    "short_name": "wedding_invitation_app",
+    "name": "Suleman's Wedding Invitation",
+    "short_name": "Suleman's Wedding",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#490A21",
+    "theme_color": "#490A21",
+    "description": "Wedding invitation of Suleman Ahmad & Mehrunisa Zahid \u2014 22, 24 & 25 October 2026.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

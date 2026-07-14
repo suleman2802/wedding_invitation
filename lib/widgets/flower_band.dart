@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 
+import 'gentle_float.dart';
+
 /// The overlapping row of five flower images used along section edges:
 /// assets/flowers/flower1.webp … flower5.webp, laid out left to right with
 /// the smaller blooms building up to one large bloom on the right.
+/// Each bloom drifts and rocks gently, out of phase with its neighbours.
 class FlowerBand extends StatelessWidget {
   final double height;
   const FlowerBand({super.key, this.height = 170});
@@ -34,10 +37,16 @@ class FlowerBand extends StatelessWidget {
                     left: w * _slots[i].left,
                     bottom: height * _slots[i].lift,
                     width: w * _slots[i].width,
-                    child: Image.asset(
-                      'assets/flowers/flower${i + 1}.webp',
-                      fit: BoxFit.contain,
-                      filterQuality: FilterQuality.medium,
+                    child: GentleFloat(
+                      dy: 4.0 + i % 3,
+                      angle: 0.02,
+                      period: Duration(milliseconds: 4200 + i * 620),
+                      phase: i * 0.19,
+                      child: Image.asset(
+                        'assets/flowers/flower${i + 1}.webp',
+                        fit: BoxFit.contain,
+                        filterQuality: FilterQuality.medium,
+                      ),
                     ),
                   ),
               ],

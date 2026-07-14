@@ -89,10 +89,29 @@ class _CountdownTimerState extends State<CountdownTimer> {
       children: [
         SizedBox(
           width: 58,
-          child: Text(
-            value,
-            textAlign: TextAlign.center,
-            style: WeddingType.display(size: 36, color: widget.color),
+          height: 46,
+          child: ClipRect(
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 420),
+              switchInCurve: Curves.easeOutCubic,
+              switchOutCurve: Curves.easeInCubic,
+              transitionBuilder: (child, animation) => FadeTransition(
+                opacity: animation,
+                child: SlideTransition(
+                  position: Tween<Offset>(
+                    begin: const Offset(0, 0.55),
+                    end: Offset.zero,
+                  ).animate(animation),
+                  child: child,
+                ),
+              ),
+              child: Text(
+                value,
+                key: ValueKey(value),
+                textAlign: TextAlign.center,
+                style: WeddingType.display(size: 36, color: widget.color),
+              ),
+            ),
           ),
         ),
         const SizedBox(height: 4),

@@ -7,6 +7,7 @@ import '../widgets/countdown.dart';
 import '../widgets/couple_illustration.dart';
 import '../widgets/floral.dart';
 import '../widgets/flower_band.dart';
+import '../widgets/gentle_float.dart';
 import '../widgets/map_preview.dart';
 import '../widgets/petal_rain.dart';
 import '../widgets/reveal_on_scroll.dart';
@@ -70,8 +71,23 @@ class InvitationPage extends StatelessWidget {
 // Hero
 // ---------------------------------------------------------------------------
 
-class _HeroSection extends StatelessWidget {
+class _HeroSection extends StatefulWidget {
   const _HeroSection();
+
+  @override
+  State<_HeroSection> createState() => _HeroSectionState();
+}
+
+class _HeroSectionState extends State<_HeroSection> {
+  ScrollPosition? _position;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _position = Scrollable.maybeOf(context)?.position;
+  }
+
+  double get _scroll => (_position?.pixels ?? 0).clamp(0.0, 900.0);
 
   @override
   Widget build(BuildContext context) {
@@ -98,55 +114,84 @@ class _HeroSection extends StatelessWidget {
               ),
             ),
           ),
-          // Soft glow behind the names.
+          // Soft breathing glow behind the names.
           Align(
             alignment: const Alignment(0, -0.1),
-            child: Container(
-              width: 320,
-              height: 320,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [
-                    Colors.white.withValues(alpha: 0.30),
-                    Colors.white.withValues(alpha: 0.0),
-                  ],
+            child: GentleFloat(
+              dy: 0,
+              scale: 0.08,
+              period: const Duration(seconds: 6),
+              child: Container(
+                width: 320,
+                height: 320,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      Colors.white.withValues(alpha: 0.30),
+                      Colors.white.withValues(alpha: 0.0),
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
           const PetalRain(count: 18),
-          Column(
-            children: [
-              const SizedBox(height: 48),
-              Text(
-                'بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيْمِ',
-                textDirection: TextDirection.rtl,
-                style: WeddingType.arabic(
-                    size: 24, color: Colors.white, shadows: _textShadow),
-              ),
-              const SizedBox(height: 10),
-              Text('Wedding Days',
-                  style: WeddingType.script(size: 34, shadows: _textShadow)),
-              const SizedBox(height: 6),
-              Text(
-                '22 · 24 · 25 OCTOBER 2026',
-                style: WeddingType.caps(
-                    size: 14, color: Colors.white, letterSpacing: 4),
-              ),
-              const Spacer(),
-              _heroName(WeddingConfig.groomName),
-              const SizedBox(height: 6),
-              _parentLine('SON OF ${WeddingConfig.groomFatherName}'),
-              const SizedBox(height: 10),
-              Text('&',
-                  style: WeddingType.script(size: 36, shadows: _textShadow)),
-              const SizedBox(height: 10),
-              _heroName(WeddingConfig.brideName),
-              const SizedBox(height: 6),
-              _parentLine('DAUGHTER OF ${WeddingConfig.brideFatherName}'),
-              const Spacer(flex: 2),
-            ],
+          // Text layers drift at different speeds while scrolling away,
+          // giving the hero a sense of depth.
+          AnimatedBuilder(
+            animation: _position ?? const AlwaysStoppedAnimation<double>(0),
+            builder: (context, _) => Column(
+              children: [
+                const SizedBox(height: 48),
+                Transform.translate(
+                  offset: Offset(0, _scroll * 0.42),
+                  child: Column(
+                    children: [
+                      Text(
+                        'بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيْمِ',
+                        textDirection: TextDirection.rtl,
+                        style: WeddingType.arabic(
+                            size: 24,
+                            color: Colors.white,
+                            shadows: _textShadow),
+                      ),
+                      const SizedBox(height: 10),
+                      Text('Wedding Days',
+                          style: WeddingType.script(
+                              size: 34, shadows: _textShadow)),
+                      const SizedBox(height: 6),
+                      Text(
+                        '22 · 24 · 25 OCTOBER 2026',
+                        style: WeddingType.caps(
+                            size: 14, color: Colors.white, letterSpacing: 4),
+                      ),
+                    ],
+                  ),
+                ),
+                const Spacer(),
+                Transform.translate(
+                  offset: Offset(0, _scroll * 0.26),
+                  child: Column(
+                    children: [
+                      _heroName(WeddingConfig.groomName),
+                      const SizedBox(height: 6),
+                      _parentLine('SON OF ${WeddingConfig.groomFatherName}'),
+                      const SizedBox(height: 10),
+                      Text('&',
+                          style: WeddingType.script(
+                              size: 36, shadows: _textShadow)),
+                      const SizedBox(height: 10),
+                      _heroName(WeddingConfig.brideName),
+                      const SizedBox(height: 6),
+                      _parentLine(
+                          'DAUGHTER OF ${WeddingConfig.brideFatherName}'),
+                    ],
+                  ),
+                ),
+                const Spacer(flex: 2),
+              ],
+            ),
           ),
           // Floral band anchored to the bottom edge.
           const Align(
@@ -551,7 +596,17 @@ class _ScheduleTimelineState extends State<_ScheduleTimeline> {
     return Column(
       children: [
         for (var i = 0; i < items.length; i++)
-          IntrinsicHeight(
+          RevealOnScroll(
+            delay: Duration(milliseconds: 70 * i),
+            offsetY: 18,
+            child: _buildRow(i, items, color),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildRow(int i, List<ScheduleItem> items, Color color) {
+    return IntrinsicHeight(
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -604,8 +659,6 @@ class _ScheduleTimelineState extends State<_ScheduleTimeline> {
                 ),
               ],
             ),
-          ),
-      ],
     );
   }
 }
@@ -719,7 +772,13 @@ class _ClosingSection extends StatelessWidget {
           style: WeddingType.display(size: 22, color: WeddingColors.softCream),
         ),
         const SizedBox(height: 34),
-        const RevealOnScroll(child: CoupleIllustration(height: 340)),
+        const RevealOnScroll(
+          child: GentleFloat(
+            dy: 6,
+            period: Duration(seconds: 6),
+            child: CoupleIllustration(height: 340),
+          ),
+        ),
         const SizedBox(height: 34),
         Text(
           'MADE WITH LOVE · OCTOBER 2026',

@@ -7,11 +7,16 @@ class RevealOnScroll extends StatefulWidget {
   final Duration duration;
   final double offsetY;
 
+  /// Wait this long after entering the viewport before revealing — lets
+  /// sibling widgets cascade in one after another.
+  final Duration delay;
+
   const RevealOnScroll({
     super.key,
     required this.child,
     this.duration = const Duration(milliseconds: 750),
     this.offsetY = 28,
+    this.delay = Duration.zero,
   });
 
   @override
@@ -50,8 +55,14 @@ class _RevealOnScrollState extends State<RevealOnScroll>
     final top = box.localToGlobal(Offset.zero).dy;
     if (top < viewportHeight * 0.92) {
       _revealed = true;
-      _controller.forward();
       _position?.removeListener(_check);
+      if (widget.delay == Duration.zero) {
+        _controller.forward();
+      } else {
+        Future.delayed(widget.delay, () {
+          if (mounted) _controller.forward();
+        });
+      }
     }
   }
 
