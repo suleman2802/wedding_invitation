@@ -1,9 +1,12 @@
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../theme.dart';
 import '../wedding_config.dart';
+import '../widgets/petal_rain.dart';
 
 /// Full-screen envelope intro. The wax seal pulses gently; on tap the seal
 /// melts away, the flap swings open in 3D, a letter rises from the pocket and
@@ -75,6 +78,34 @@ class _EnvelopeOverlayState extends State<EnvelopeOverlay>
     _open.forward();
   }
 
+  /// Photo of the grandfather holding the envelope, used as the intro scene.
+  static const String _photoAsset =
+      'assets/grandparents/grandfather_new_image.png';
+
+  /// Photo dimensions and the envelope's position inside it, as fractions of
+  /// the image — measured from the actual picture so the interactive envelope
+  /// sits exactly in his hands.
+  static const double _photoAspect = 688 / 1529;
+  static const double _envLeft = 0.231;
+  static const double _envTop = 0.585;
+  static const double _envWidth = 0.587;
+  static const double _envHeight = 0.124;
+
+  /// Vertical position (fraction of the photo) of the tap hint — just
+  /// below his hands.
+  static const double _hintTop = 0.790;
+
+  static Future<bool>? _photoAvailable;
+
+  static Future<bool> _checkPhoto() async {
+    try {
+      await rootBundle.load(_photoAsset);
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Material(
@@ -99,29 +130,11 @@ class _EnvelopeOverlayState extends State<EnvelopeOverlay>
                     ],
                   ),
                 ),
-                alignment: Alignment.center,
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    final w =
-                        math.min(constraints.maxWidth * 0.88, 420.0);
-                    final h = math.min(
-                        constraints.maxHeight * 0.72, w * 1.35);
-                    // Gentle idle bob while waiting to be opened.
-                    final bob = math.sin(_pulse.value * math.pi) *
-                        6 *
-                        (1 - _open.value);
-                    return Transform.translate(
-                      offset: Offset(0, bob),
-                      child: Transform.scale(
-                        scale: 1 + _fadeOut.value * 0.25,
-                        child: SizedBox(
-                          width: w,
-                          height: h,
-                          child: _buildEnvelope(w, h),
-                        ),
-                      ),
-                    );
-                  },
+                child: FutureBuilder<bool>(
+                  future: _photoAvailable ??= _checkPhoto(),
+                  builder: (context, snapshot) => snapshot.data == true
+                      ? _photoScene()
+                      : _plainScene(),
                 ),
               ),
             );
@@ -131,7 +144,186 @@ class _EnvelopeOverlayState extends State<EnvelopeOverlay>
     );
   }
 
-  Widget _buildEnvelope(double w, double h) {
+  /// Fallback intro without the photo: the envelope centred on burgundy.
+  Widget _plainScene() {
+    return Center(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final w = math.min(constraints.maxWidth * 0.88, 420.0);
+          final h = math.min(constraints.maxHeight * 0.72, w * 1.35);
+          // Gentle idle bob while waiting to be opened.
+          final bob =
+              math.sin(_pulse.value * math.pi) * 6 * (1 - _open.value);
+          return Transform.translate(
+            offset: Offset(0, bob),
+            child: Transform.scale(
+              scale: 1 + _fadeOut.value * 0.25,
+              child: SizedBox(
+                width: w,
+                height: h,
+                child: _buildEnvelope(w, h),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  /// The grandfather photo fills the screen (letterboxed on wide displays)
+  /// and the interactive envelope is laid exactly over the one in his hands.
+  Widget _photoScene() {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final sw = constraints.maxWidth;
+        final sh = constraints.maxHeight;
+        // BoxFit.contain geometry of the photo inside the screen.
+        final double dw, dh;
+        if (sw / sh > _photoAspect) {
+          dh = sh;
+          dw = sh * _photoAspect;
+        } else {
+          dw = sw;
+          dh = sw / _photoAspect;
+        }
+        final photoLeft = (sw - dw) / 2;
+        final photoTop = (sh - dh) / 2;
+
+        final envW = dw * _envWidth;
+        final envH = dh * _envHeight;
+        final envLeft = photoLeft + dw * _envLeft;
+        final envTop = photoTop + dh * _envTop;
+        // Very subtle bob so it never drifts out of his hands.
+        final bob = math.sin(_pulse.value * math.pi) * 2.5 * (1 - _open.value);
+
+        return Stack(
+          children: [
+            // Blurred, darkened copy of the photo fills the whole screen so
+            // there are no hard letterbox bars around the portrait.
+            Positioned.fill(
+              child: RepaintBoundary(
+                child: ImageFiltered(
+                  imageFilter: ui.ImageFilter.blur(sigmaX: 22, sigmaY: 22),
+                  child: Image.asset(
+                    _photoAsset,
+                    fit: BoxFit.cover,
+                    filterQuality: FilterQuality.low,
+                  ),
+                ),
+              ),
+            ),
+            Positioned.fill(
+              child: ColoredBox(
+                color: WeddingColors.darkestBurgundy.withValues(alpha: 0.55),
+              ),
+            ),
+            // The portrait itself.
+            Positioned.fill(
+              child: Image.asset(
+                _photoAsset,
+                fit: BoxFit.contain,
+                filterQuality: FilterQuality.medium,
+              ),
+            ),
+            const Positioned.fill(child: PetalRain(count: 12)),
+            // Welcome message across the top of the photo, on a translucent
+            // burgundy panel so it reads clearly over the curtains.
+            Positioned(
+              left: photoLeft + dw * 0.045,
+              right: (sw - photoLeft - dw) + dw * 0.045,
+              top: photoTop + dh * 0.018,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(
+                  color: WeddingColors.deepBurgundy.withValues(alpha: 0.80),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: WeddingColors.gold.withValues(alpha: 0.55),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.30),
+                      blurRadius: 18,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
+                ),
+                child: Text(
+                  'With the grace of Allah Almighty,\nwe heartily invite you '
+                  'to our wedding celebrations',
+                  textAlign: TextAlign.center,
+                  style: WeddingType.script(
+                    size: (dw * 0.062).clamp(19.0, 27.0),
+                    color: WeddingColors.softCream,
+                    shadows: [
+                      const Shadow(
+                        color: Colors.black54,
+                        offset: Offset(0, 1),
+                        blurRadius: 6,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            Positioned(
+              left: envLeft,
+              top: envTop + bob,
+              width: envW,
+              height: envH,
+              child: Transform.scale(
+                scale: 1 + _fadeOut.value * 0.25,
+                child: _buildEnvelope(envW, envH, showHint: false),
+              ),
+            ),
+            // Tap hint below his hands, on a chip so it reads anywhere.
+            Positioned(
+              left: 0,
+              right: 0,
+              top: photoTop + dh * _hintTop,
+              child: Opacity(
+                opacity: (1 - _open.value * 4).clamp(0.0, 1.0) *
+                    (0.65 + 0.35 * _pulse.value),
+                child: Center(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 18, vertical: 9),
+                    decoration: BoxDecoration(
+                      color: WeddingColors.deepBurgundy
+                          .withValues(alpha: 0.82),
+                      borderRadius: BorderRadius.circular(30),
+                      border: Border.all(
+                        color: WeddingColors.gold.withValues(alpha: 0.55),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.touch_app_outlined,
+                            color: WeddingColors.softCream, size: 16),
+                        const SizedBox(width: 8),
+                        Text(
+                          'TAP TO OPEN',
+                          style: WeddingType.caps(
+                            size: 12,
+                            color: WeddingColors.softCream,
+                            letterSpacing: 4,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildEnvelope(double w, double h, {bool showHint = true}) {
     final flapHeight = h * 0.5;
     final flapAngle = _flapTurn.value * math.pi;
     final flapBehind = flapAngle > math.pi / 2;
@@ -176,6 +368,7 @@ class _EnvelopeOverlayState extends State<EnvelopeOverlay>
           ),
         ),
         // Tap hint.
+        if (showHint)
         Positioned(
           bottom: h * 0.08,
           child: Opacity(
@@ -249,41 +442,49 @@ class _EnvelopeOverlayState extends State<EnvelopeOverlay>
         ],
       ),
       alignment: Alignment.center,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            'بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيْمِ',
-            textDirection: TextDirection.rtl,
-            style: WeddingType.arabic(size: 18, color: WeddingColors.gold),
+      // The letter can be quite small when the envelope sits in the photo's
+      // hands, so the content scales down to fit rather than overflowing.
+      child: Padding(
+        padding: const EdgeInsets.all(8),
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيْمِ',
+                textDirection: TextDirection.rtl,
+                style: WeddingType.arabic(size: 18, color: WeddingColors.gold),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                'Together with their families',
+                style: WeddingType.caps(
+                  size: 10,
+                  color: WeddingColors.inkOnCream.withValues(alpha: 0.7),
+                  letterSpacing: 2.5,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                WeddingConfig.groomShort,
+                style: WeddingType.script(
+                    size: 38, color: WeddingColors.burgundy),
+              ),
+              Text(
+                '&',
+                style: WeddingType.script(
+                    size: 24, color: WeddingColors.gold),
+              ),
+              Text(
+                WeddingConfig.brideShort,
+                style: WeddingType.script(
+                    size: 38, color: WeddingColors.burgundy),
+              ),
+            ],
           ),
-          const SizedBox(height: 10),
-          Text(
-            'Together with their families',
-            style: WeddingType.caps(
-              size: 10,
-              color: WeddingColors.inkOnCream.withValues(alpha: 0.7),
-              letterSpacing: 2.5,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 12),
-          Text(
-            WeddingConfig.groomShort,
-            style: WeddingType.script(
-                size: 38, color: WeddingColors.burgundy),
-          ),
-          Text(
-            '&',
-            style: WeddingType.script(
-                size: 24, color: WeddingColors.gold),
-          ),
-          Text(
-            WeddingConfig.brideShort,
-            style: WeddingType.script(
-                size: 38, color: WeddingColors.burgundy),
-          ),
-        ],
+        ),
       ),
     );
   }
