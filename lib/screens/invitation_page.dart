@@ -13,6 +13,10 @@ import '../widgets/petal_rain.dart';
 import '../widgets/reveal_on_scroll.dart';
 import '../widgets/torn_edge.dart';
 
+/// Set to true to show the per-event dress-code block (note + colour
+/// swatches) for events that define one.
+const bool _showDressCode = false;
+
 /// The scrolling invitation, laid out as a phone-width column centred on a
 /// deep burgundy page — sections alternate cream / burgundy with torn edges.
 class InvitationPage extends StatelessWidget {
@@ -44,10 +48,7 @@ class InvitationPage extends StatelessWidget {
                     child: const _EventsIntro(),
                   ),
                   for (var i = 0; i < WeddingConfig.events.length; i++) ...[
-                    _EventSection(
-                      event: WeddingConfig.events[i],
-                      index: i,
-                    ),
+                    _EventSection(event: WeddingConfig.events[i], index: i),
                   ],
                   const _DetailsSection(),
                   TornSection(
@@ -152,19 +153,27 @@ class _HeroSectionState extends State<_HeroSection> {
                         'بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيْمِ',
                         textDirection: TextDirection.rtl,
                         style: WeddingType.arabic(
-                            size: 24,
-                            color: Colors.white,
-                            shadows: _textShadow),
+                          size: 24,
+                          color: Colors.white,
+                          shadows: _textShadow,
+                        ),
                       ),
                       const SizedBox(height: 10),
-                      Text('Wedding Days',
-                          style: WeddingType.script(
-                              size: 34, shadows: _textShadow)),
+                      Text(
+                        'Wedding Days',
+                        style: WeddingType.script(
+                          size: 34,
+                          shadows: _textShadow,
+                        ),
+                      ),
                       const SizedBox(height: 6),
                       Text(
                         '22 · 24 · 25 OCTOBER 2026',
                         style: WeddingType.caps(
-                            size: 14, color: Colors.white, letterSpacing: 4),
+                          size: 14,
+                          color: Colors.white,
+                          letterSpacing: 4,
+                        ),
                       ),
                     ],
                   ),
@@ -178,14 +187,19 @@ class _HeroSectionState extends State<_HeroSection> {
                       const SizedBox(height: 6),
                       _parentLine('SON OF ${WeddingConfig.groomFatherName}'),
                       const SizedBox(height: 10),
-                      Text('&',
-                          style: WeddingType.script(
-                              size: 36, shadows: _textShadow)),
+                      Text(
+                        '&',
+                        style: WeddingType.script(
+                          size: 36,
+                          shadows: _textShadow,
+                        ),
+                      ),
                       const SizedBox(height: 10),
                       _heroName(WeddingConfig.brideName),
                       const SizedBox(height: 6),
                       _parentLine(
-                          'DAUGHTER OF ${WeddingConfig.brideFatherName}'),
+                        'DAUGHTER OF ${WeddingConfig.brideFatherName}',
+                      ),
                     ],
                   ),
                 ),
@@ -222,9 +236,11 @@ class _HeroSectionState extends State<_HeroSection> {
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: FittedBox(
         fit: BoxFit.scaleDown,
-        child: Text(name,
-            maxLines: 1,
-            style: WeddingType.script(size: 58, shadows: _textShadow)),
+        child: Text(
+          name,
+          maxLines: 1,
+          style: WeddingType.script(size: 58, shadows: _textShadow),
+        ),
       ),
     );
   }
@@ -254,7 +270,10 @@ class _IslamicSection extends StatelessWidget {
           children: [
             Text(
               'Marriage in Islam',
-              style: WeddingType.script(size: 34, color: WeddingColors.burgundy),
+              style: WeddingType.script(
+                size: 34,
+                color: WeddingColors.burgundy,
+              ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 22),
@@ -275,9 +294,9 @@ class _IslamicSection extends StatelessWidget {
               'among yourselves, so that you may find tranquillity in them; '
               'and He placed between you love and mercy. Indeed, in that are '
               'signs for people who reflect."',
-              style: WeddingType.serif(size: 17.5).copyWith(
-                fontStyle: FontStyle.italic,
-              ),
+              style: WeddingType.serif(
+                size: 17.5,
+              ).copyWith(fontStyle: FontStyle.italic),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 12),
@@ -318,8 +337,11 @@ class _WelcomeMessage extends StatelessWidget {
     return RevealOnScroll(
       child: Column(
         children: [
-          Text('Dear Friends and Family,',
-              style: WeddingType.script(size: 36), textAlign: TextAlign.center),
+          Text(
+            'Dear Friends and Family,',
+            style: WeddingType.script(size: 36),
+            textAlign: TextAlign.center,
+          ),
           const SizedBox(height: 24),
           Text(
             'With hearts full of joy, and by the grace of Allah, '
@@ -357,7 +379,9 @@ class _CountdownSection extends StatelessWidget {
             Text(
               'The Celebration Begins In',
               style: WeddingType.script(
-                  size: 34, color: WeddingColors.burgundy),
+                size: 34,
+                color: WeddingColors.burgundy,
+              ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 28),
@@ -383,8 +407,11 @@ class _EventsIntro extends StatelessWidget {
     return RevealOnScroll(
       child: Column(
         children: [
-          Text('Three Days of Celebration',
-              style: WeddingType.script(size: 36), textAlign: TextAlign.center),
+          Text(
+            'Three Days of Celebration',
+            style: WeddingType.script(size: 36),
+            textAlign: TextAlign.center,
+          ),
           const SizedBox(height: 20),
           Text(
             'From the colours of the Mehndi to the elegance of the Walima — '
@@ -408,55 +435,74 @@ class _EventSection extends StatelessWidget {
     final onBurgundy = index.isOdd;
     final bg = onBurgundy ? WeddingColors.burgundy : WeddingColors.cream;
     final fg = onBurgundy ? WeddingColors.softCream : WeddingColors.inkOnCream;
-    final accent = onBurgundy ? WeddingColors.softCream : WeddingColors.burgundy;
+    final accent = onBurgundy
+        ? WeddingColors.softCream
+        : WeddingColors.burgundy;
 
     final content = RevealOnScroll(
       child: Column(
         children: [
-          Text(event.name,
-              style: WeddingType.script(size: 44, color: accent),
-              textAlign: TextAlign.center),
+          Text(
+            event.name,
+            style: WeddingType.script(size: 44, color: accent),
+            textAlign: TextAlign.center,
+          ),
           const SizedBox(height: 6),
-          Text(event.dateLabel.toUpperCase(),
-              style: WeddingType.caps(size: 14, color: fg, letterSpacing: 3.5)),
+          Text(
+            event.dateLabel.toUpperCase(),
+            style: WeddingType.caps(size: 14, color: fg, letterSpacing: 3.5),
+          ),
           const SizedBox(height: 10),
-          Text(event.tagline,
-              style: WeddingType.serif(
-                  size: 17,
-                  color: fg.withValues(alpha: 0.85),
-                  height: 1.4),
-              textAlign: TextAlign.center),
+          Text(
+            event.tagline,
+            style: WeddingType.serif(
+              size: 17,
+              color: fg.withValues(alpha: 0.85),
+              height: 1.4,
+            ),
+            textAlign: TextAlign.center,
+          ),
           const SizedBox(height: 30),
           _ScheduleTimeline(items: event.schedule, color: fg),
           const SizedBox(height: 30),
-          Text(event.venueName,
-              style: WeddingType.display(size: 20, color: fg),
-              textAlign: TextAlign.center),
+          Text(
+            event.venueName,
+            style: WeddingType.display(size: 20, color: fg),
+            textAlign: TextAlign.center,
+          ),
           if (event.venueAddress.isNotEmpty) ...[
             const SizedBox(height: 6),
-            Text(event.venueAddress,
-                style: WeddingType.serif(size: 16, color: fg),
-                textAlign: TextAlign.center),
+            Text(
+              event.venueAddress,
+              style: WeddingType.serif(size: 16, color: fg),
+              textAlign: TextAlign.center,
+            ),
           ],
           if (event.mapQuery != null) ...[
             const SizedBox(height: 18),
             MapPreview(query: event.mapQuery!, openUrl: event.mapUrl),
           ],
-          const SizedBox(height: 16),
+          // const SizedBox(height: 16),
           _MapButton(event: event, onBurgundy: onBurgundy),
-          if (event.dressNote.isNotEmpty || event.palette.isNotEmpty) ...[
+          if (_showDressCode &&
+              (event.dressNote.isNotEmpty || event.palette.isNotEmpty)) ...[
             const SizedBox(height: 26),
             const OrnamentDivider(),
             const SizedBox(height: 22),
-            Text('Dress Code',
-                style:
-                    WeddingType.caps(size: 13, color: fg, letterSpacing: 3)),
+            Text(
+              'Dress Code',
+              style: WeddingType.caps(size: 13, color: fg, letterSpacing: 3),
+            ),
             if (event.dressNote.isNotEmpty) ...[
               const SizedBox(height: 10),
-              Text(event.dressNote,
-                  style: WeddingType.serif(
-                      size: 17, color: fg.withValues(alpha: 0.9)),
-                  textAlign: TextAlign.center),
+              Text(
+                event.dressNote,
+                style: WeddingType.serif(
+                  size: 17,
+                  color: fg.withValues(alpha: 0.9),
+                ),
+                textAlign: TextAlign.center,
+              ),
             ],
             if (event.palette.isNotEmpty) ...[
               const SizedBox(height: 18),
@@ -607,58 +653,57 @@ class _ScheduleTimelineState extends State<_ScheduleTimeline> {
 
   Widget _buildRow(int i, List<ScheduleItem> items, Color color) {
     return IntrinsicHeight(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              child: Text(
+                items[i].time,
+                textAlign: TextAlign.right,
+                style: WeddingType.display(size: 21, color: color),
+              ),
+            ),
+          ),
+          SizedBox(
+            width: 56,
+            child: Column(
               children: [
                 Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    child: Text(
-                      items[i].time,
-                      textAlign: TextAlign.right,
-                      style: WeddingType.display(size: 21, color: color),
-                    ),
+                  child: Container(
+                    width: 1,
+                    color: i == 0
+                        ? Colors.transparent
+                        : color.withValues(alpha: 0.5),
                   ),
                 ),
-                SizedBox(
-                  width: 56,
-                  child: Column(
-                    children: [
-                      Expanded(
-                        child: Container(
-                          width: 1,
-                          color: i == 0
-                              ? Colors.transparent
-                              : color.withValues(alpha: 0.5),
-                        ),
-                      ),
-                      Transform.rotate(
-                        angle: 0.785398,
-                        child: Container(width: 7, height: 7, color: color),
-                      ),
-                      Expanded(
-                        child: Container(
-                          width: 1,
-                          color: i == items.length - 1
-                              ? Colors.transparent
-                              : color.withValues(alpha: 0.5),
-                        ),
-                      ),
-                    ],
-                  ),
+                Transform.rotate(
+                  angle: 0.785398,
+                  child: Container(width: 7, height: 7, color: color),
                 ),
                 Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    child: Text(
-                      items[i].label,
-                      style: WeddingType.serif(
-                          size: 17, color: color, height: 1.3),
-                    ),
+                  child: Container(
+                    width: 1,
+                    color: i == items.length - 1
+                        ? Colors.transparent
+                        : color.withValues(alpha: 0.5),
                   ),
                 ),
               ],
             ),
+          ),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              child: Text(
+                items[i].label,
+                style: WeddingType.serif(size: 17, color: color, height: 1.3),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -674,28 +719,34 @@ class _MapButton extends StatelessWidget {
     final fg = onBurgundy ? WeddingColors.burgundy : WeddingColors.cream;
     final bg = onBurgundy ? WeddingColors.cream : WeddingColors.burgundy;
 
-    return OutlinedButton.icon(
-      onPressed: enabled
-          ? () => launchUrl(Uri.parse(event.mapUrl!),
-              mode: LaunchMode.externalApplication)
-          : null,
-      style: OutlinedButton.styleFrom(
-        backgroundColor: enabled ? bg : bg.withValues(alpha: 0.45),
-        foregroundColor: fg,
-        disabledForegroundColor: fg.withValues(alpha: 0.8),
-        side: BorderSide(color: WeddingColors.gold.withValues(alpha: 0.6)),
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(30),
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: OutlinedButton.icon(
+        onPressed: enabled
+            ? () => launchUrl(
+                Uri.parse(event.mapUrl!),
+                mode: LaunchMode.externalApplication,
+              )
+            : null,
+        style: OutlinedButton.styleFrom(
+          backgroundColor: enabled ? bg : bg.withValues(alpha: 0.45),
+          foregroundColor: fg,
+          disabledForegroundColor: fg.withValues(alpha: 0.8),
+          side: BorderSide(color: WeddingColors.gold.withValues(alpha: 0.6)),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(30),
+          ),
         ),
-      ),
-      icon: const Icon(Icons.place_outlined, size: 18),
-      label: Text(
-        enabled ? 'Open in Google Maps' : 'Location coming soon',
-        style: WeddingType.caps(
+        icon: const Icon(Icons.place_outlined, size: 18),
+        label: Text(
+          enabled ? 'Open in Google Maps' : 'Location coming soon',
+          style: WeddingType.caps(
             size: 12,
             color: enabled ? fg : fg.withValues(alpha: 0.8),
-            letterSpacing: 2),
+            letterSpacing: 2,
+          ),
+        ),
       ),
     );
   }
@@ -715,27 +766,36 @@ class _DetailsSection extends StatelessWidget {
       child: RevealOnScroll(
         child: Column(
           children: [
-            Text('Details',
-                style:
-                    WeddingType.script(size: 36, color: WeddingColors.burgundy)),
-            const SizedBox(height: 20),
+            Text(
+              'Details',
+              style: WeddingType.script(
+                size: 36,
+                color: WeddingColors.burgundy,
+              ),
+            ),
+            const SizedBox(height: 12),
             Text(
               'For additional information or questions,\nplease feel free to reach out.',
               style: WeddingType.serif(size: 18),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 12),
             for (final c in WeddingConfig.contacts) ...[
               Text(c.name, style: WeddingType.display(size: 19)),
               const SizedBox(height: 4),
               InkWell(
                 onTap: () => launchUrl(
-                    Uri(scheme: 'tel', path: c.phone.replaceAll(' ', ''))),
-                child: Text(c.phone,
-                    style: WeddingType.serif(
-                        size: 18, color: WeddingColors.burgundy)),
+                  Uri(scheme: 'tel', path: c.phone.replaceAll(' ', '')),
+                ),
+                child: Text(
+                  c.phone,
+                  style: WeddingType.serif(
+                    size: 18,
+                    color: WeddingColors.burgundy,
+                  ),
+                ),
               ),
-              const SizedBox(height: 14),
+              const SizedBox(height: 12),
             ],
             const SizedBox(height: 10),
             Text(
@@ -764,8 +824,11 @@ class _ClosingSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Text('Hope to see you there!',
-            style: WeddingType.script(size: 34), textAlign: TextAlign.center),
+        Text(
+          'Hope to see you there!',
+          style: WeddingType.script(size: 34),
+          textAlign: TextAlign.center,
+        ),
         const SizedBox(height: 8),
         Text(
           '${WeddingConfig.groomShort} & ${WeddingConfig.brideShort}',
@@ -783,9 +846,10 @@ class _ClosingSection extends StatelessWidget {
         Text(
           'MADE WITH LOVE · OCTOBER 2026',
           style: WeddingType.caps(
-              size: 10,
-              color: WeddingColors.softCream.withValues(alpha: 0.6),
-              letterSpacing: 3),
+            size: 10,
+            color: WeddingColors.softCream.withValues(alpha: 0.6),
+            letterSpacing: 3,
+          ),
         ),
       ],
     );

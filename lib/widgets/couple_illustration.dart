@@ -5,10 +5,9 @@ import '../theme.dart';
 
 /// The couple artwork in a cream medallion arched with the wedding flowers.
 ///
-/// If assets/couple/couple.png (or .webp) exists it is shown tinted in the
-/// wedding burgundy — drop in any transparent-background silhouette and it
-/// matches the colour scheme automatically. Until then, the built-in painted
-/// silhouette is used.
+/// If assets/couple/couple.png (or .webp) exists it is shown as-is — a
+/// transparent-background illustration in its own colours. If the file is
+/// missing, the built-in painted silhouette is used instead.
 class CoupleIllustration extends StatelessWidget {
   final double height;
   const CoupleIllustration({super.key, this.height = 340});
@@ -79,17 +78,14 @@ class CoupleIllustration extends StatelessWidget {
                 }
                 return Padding(
                   padding: EdgeInsets.only(
-                    top: height * 0.26,
-                    bottom: height * 0.08,
-                    left: width * 0.05,
-                    right: width * 0.05,
+                    top: height * 0.205,
+                    bottom: height * 0.045,
+                    left: width * 0.02,
+                    right: width * 0.02,
                   ),
                   child: Image.asset(
                     asset,
                     fit: BoxFit.contain,
-                    // Tint the silhouette to the wedding burgundy.
-                    color: CoupleSilhouettePainter.silhouetteColor,
-                    colorBlendMode: BlendMode.srcIn,
                     filterQuality: FilterQuality.medium,
                   ),
                 );

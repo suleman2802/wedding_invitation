@@ -250,8 +250,8 @@ class _EnvelopeOverlayState extends State<EnvelopeOverlay>
                   ],
                 ),
                 child: Text(
-                  'With the grace of Allah Almighty,\nwe heartily invite you '
-                  'to our wedding celebrations',
+                  'With the grace of Allah Almighty,\nI heartily invite you '
+                  'to my grandson wedding celebrations',
                   textAlign: TextAlign.center,
                   style: WeddingType.script(
                     size: (dw * 0.062).clamp(19.0, 27.0),

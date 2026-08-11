@@ -25,6 +25,7 @@ class WeddingConfig {
   static const List<ContactPerson> contacts = [
     ContactPerson(name: 'Rizwan Ahmad', phone: '+92 300 964 3759'),
     ContactPerson(name: 'Suleman Ahmad', phone: '+92 318 448 2240'),
+    ContactPerson(name: 'Saad Ahmad', phone: '+92 327 861 1339'),
   ];
 
   /// WhatsApp number used by the RSVP button (digits only, country code first).
@@ -44,7 +45,7 @@ class WeddingConfig {
         ScheduleItem('7:00 PM', 'Dholki'),
         ScheduleItem('8:30 PM', 'Rasam'),
         ScheduleItem('9:30 PM', 'Dinner'),
-        ScheduleItem('11:00 PM', 'Sangeet'),
+        // ScheduleItem('11:00 PM', 'Sangeet'),
       ],
       dressNote: '',
       palette: [],
@@ -60,10 +61,10 @@ class WeddingConfig {
       mapQuery: 'Kashmir Fort Marquee, Lahore',
       schedule: [
         ScheduleItem('2:00 PM', 'Sehra Bandi'),
-        ScheduleItem('6:00 PM', 'Reception'),
+        // ScheduleItem('6:00 PM', 'Reception'),
         ScheduleItem('7:30 PM', 'Nikkah'),
         ScheduleItem('9:30 PM', 'Rukhsati'),
-        ScheduleItem('11:45 PM', 'Bride Welcome'),
+        // ScheduleItem('11:45 PM', 'Bride Welcome'),
       ],
       dressNote: '',
       palette: [],
@@ -79,7 +80,7 @@ class WeddingConfig {
       mapQuery: 'Amin Orchid, Gujranwala',
       schedule: [
         ScheduleItem('6:30 PM', 'Reception'),
-        ScheduleItem('8:00 PM', "Couple's Entry"),
+        // ScheduleItem('8:00 PM', "Couple's Entry"),
         ScheduleItem('9:00 PM', 'Dinner'),
       ],
       dressNote:
