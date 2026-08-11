@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../audio/wedding_audio.dart';
 import '../theme.dart';
 import '../wedding_config.dart';
 import '../widgets/countdown.dart';
@@ -26,6 +27,7 @@ class InvitationPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: WeddingColors.darkestBurgundy,
+      floatingActionButton: const _MusicButton(),
       body: SingleChildScrollView(
         child: Center(
           child: ConstrainedBox(
@@ -64,6 +66,45 @@ class InvitationPage extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Music toggle
+// ---------------------------------------------------------------------------
+
+/// Floating play/pause control for the background music. Hidden entirely
+/// when no music file is bundled.
+class _MusicButton extends StatelessWidget {
+  const _MusicButton();
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<bool>(
+      future: WeddingAudio.available(),
+      builder: (context, snapshot) {
+        if (snapshot.data != true) return const SizedBox.shrink();
+        return ValueListenableBuilder<bool>(
+          valueListenable: WeddingAudio.playing,
+          builder: (context, playing, _) => FloatingActionButton.small(
+            onPressed: WeddingAudio.toggle,
+            tooltip: playing ? 'Pause music' : 'Play music',
+            backgroundColor: WeddingColors.cream,
+            foregroundColor: WeddingColors.burgundy,
+            shape: StadiumBorder(
+              side: BorderSide(
+                color: WeddingColors.gold.withValues(alpha: 0.7),
+                width: 1.5,
+              ),
+            ),
+            child: Icon(
+              playing ? Icons.pause_rounded : Icons.music_note_rounded,
+              size: 22,
+            ),
+          ),
+        );
+      },
     );
   }
 }

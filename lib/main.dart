@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import 'audio/wedding_audio.dart';
 import 'screens/envelope_screen.dart';
 import 'screens/invitation_page.dart';
 import 'theme.dart';
@@ -73,6 +74,9 @@ class _RootState extends State<_Root> {
       for (final asset in _criticalImages)
         precacheImage(AssetImage(asset), context, onError: (_, __) {}),
       GoogleFonts.pendingFonts().then<void>((_) {}).catchError((_) {}),
+      // Resolve whether a music track is bundled, so the envelope tap can
+      // start it synchronously within the gesture.
+      WeddingAudio.available().then<void>((_) {}),
     ];
 
     try {

@@ -4,6 +4,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../audio/wedding_audio.dart';
 import '../theme.dart';
 import '../wedding_config.dart';
 import '../widgets/petal_rain.dart';
@@ -74,6 +75,9 @@ class _EnvelopeOverlayState extends State<EnvelopeOverlay>
   void _tap() {
     if (_opening) return;
     setState(() => _opening = true);
+    // Start the background music inside this tap gesture, so the browser's
+    // autoplay policy allows it.
+    WeddingAudio.start();
     _pulse.stop();
     _open.forward();
   }
