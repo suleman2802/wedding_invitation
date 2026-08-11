@@ -321,28 +321,27 @@ class _IslamicSection extends StatelessWidget {
             const OrnamentDivider(),
             const SizedBox(height: 26),
             Text(
-              'وَمِنْ آيَاتِهِ أَنْ خَلَقَ لَكُم مِّنْ أَنفُسِكُمْ أَزْوَاجًا لِّتَسْكُنُوا إِلَيْهَا وَجَعَلَ بَيْنَكُم مَّوَدَّةً وَرَحْمَةً ۚ إِنَّ فِي ذَٰلِكَ لَآيَاتٍ لِّقَوْمٍ يَتَفَكَّرُونَ',
+              'إِذَا تَزَوَّجَ الْعَبْدُ فَقَدِ اسْتَكْمَلَ نِصْفَ الدِّينِ، فَلْيَتَّقِ اللهَ فِي النِّصْفِ الْبَاقِي',
               textDirection: TextDirection.rtl,
               textAlign: TextAlign.center,
               style: WeddingType.arabic(
-                size: 22,
+                size: 23,
                 color: WeddingColors.burgundy,
               ),
             ),
             const SizedBox(height: 18),
             Text(
-              '"And among His signs is that He created for you spouses from '
-              'among yourselves, so that you may find tranquillity in them; '
-              'and He placed between you love and mercy. Indeed, in that are '
-              'signs for people who reflect."',
+              '"When a person marries, they have completed half of their '
+              'faith — so let them remain conscious of Allah in the '
+              'remaining half."',
               style: WeddingType.serif(
-                size: 17.5,
+                size: 20,
               ).copyWith(fontStyle: FontStyle.italic),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 12),
             Text(
-              'SURAH AR-RUM · 30:21',
+              'HADITH · AL-BAYHAQI',
               style: WeddingType.caps(
                 size: 11,
                 color: WeddingColors.gold,
@@ -353,9 +352,9 @@ class _IslamicSection extends StatelessWidget {
             const OrnamentDivider(),
             const SizedBox(height: 26),
             Text(
-              'Nikkah is a sacred covenant and a beautiful Sunnah — with the '
-              'blessings of Allah and the prayers of our loved ones, we begin '
-              'this journey of love, mercy and tranquillity together.',
+              'With this blessed Sunnah we begin the other half of our '
+              'deen — grateful to Allah Almighty, and grateful for your '
+              'love and prayers as our two families become one.',
               style: WeddingType.serif(size: 17),
               textAlign: TextAlign.center,
             ),
