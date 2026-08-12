@@ -101,6 +101,7 @@ class _RootState extends State<_Root> {
         const InvitationPage(),
         if (!_opened)
           EnvelopeOverlay(
+            revealed: _veilGone,
             onOpened: () {
               setState(() => _opened = true);
               // Start the invitation-card animation as the page appears.

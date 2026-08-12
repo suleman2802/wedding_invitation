@@ -14,7 +14,13 @@ import '../widgets/petal_rain.dart';
 /// the whole envelope fades out to reveal the invitation underneath.
 class EnvelopeOverlay extends StatefulWidget {
   final VoidCallback onOpened;
-  const EnvelopeOverlay({super.key, required this.onOpened});
+
+  /// Turns true when the loading wrap has fully opened and this scene is
+  /// actually visible — triggers the welcome message entrance animation.
+  final bool revealed;
+
+  const EnvelopeOverlay(
+      {super.key, required this.onOpened, this.revealed = true});
 
   @override
   State<EnvelopeOverlay> createState() => _EnvelopeOverlayState();
@@ -24,7 +30,13 @@ class _EnvelopeOverlayState extends State<EnvelopeOverlay>
     with TickerProviderStateMixin {
   late final AnimationController _open;
   late final AnimationController _pulse;
+  late final AnimationController _entrance;
   bool _opening = false;
+
+  /// The grandfather's welcome line, typed in letter by letter.
+  static const String _welcomeMsg =
+      'With the grace of Allah Almighty,\nI heartily invite you '
+      'to my grandson wedding celebrations';
 
   late final Animation<double> _sealScale;
   late final Animation<double> _flapTurn;
@@ -42,6 +54,11 @@ class _EnvelopeOverlayState extends State<EnvelopeOverlay>
       vsync: this,
       duration: const Duration(milliseconds: 1600),
     )..repeat(reverse: true);
+    _entrance = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2800),
+    );
+    if (widget.revealed) _entrance.forward();
 
     _sealScale = CurvedAnimation(
       parent: _open,
@@ -66,9 +83,18 @@ class _EnvelopeOverlayState extends State<EnvelopeOverlay>
   }
 
   @override
+  void didUpdateWidget(covariant EnvelopeOverlay oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.revealed && !oldWidget.revealed && !_entrance.isAnimating) {
+      _entrance.forward();
+    }
+  }
+
+  @override
   void dispose() {
     _open.dispose();
     _pulse.dispose();
+    _entrance.dispose();
     super.dispose();
   }
 
@@ -118,7 +144,7 @@ class _EnvelopeOverlayState extends State<EnvelopeOverlay>
         onTap: _tap,
         behavior: HitTestBehavior.opaque,
         child: AnimatedBuilder(
-          animation: Listenable.merge([_open, _pulse]),
+          animation: Listenable.merge([_open, _pulse, _entrance]),
           builder: (context, _) {
             return Opacity(
               opacity: 1 - _fadeOut.value,
@@ -230,46 +256,73 @@ class _EnvelopeOverlayState extends State<EnvelopeOverlay>
               ),
             ),
             const Positioned.fill(child: PetalRain(count: 12)),
-            // Welcome message across the top of the photo, on a translucent
-            // burgundy panel so it reads clearly over the curtains.
+            // Welcome message across the top of the photo: the panel slides
+            // in when the scene is revealed, then the grandfather's line
+            // types itself letter by letter.
             Positioned(
               left: photoLeft + dw * 0.045,
               right: (sw - photoLeft - dw) + dw * 0.045,
               top: photoTop + dh * 0.018,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 16, vertical: 12),
-                decoration: BoxDecoration(
-                  color: WeddingColors.deepBurgundy.withValues(alpha: 0.80),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: WeddingColors.gold.withValues(alpha: 0.55),
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.30),
-                      blurRadius: 18,
-                      offset: const Offset(0, 6),
+              child: Builder(builder: (context) {
+                final panelIn =
+                    const Interval(0.0, 0.28, curve: Curves.easeOutCubic)
+                        .transform(_entrance.value);
+                final typeT =
+                    const Interval(0.24, 1.0).transform(_entrance.value);
+                final typed = _welcomeMsg.substring(
+                    0, (typeT * _welcomeMsg.length).floor());
+                final style = WeddingType.script(
+                  size: (dw * 0.062).clamp(19.0, 27.0),
+                  color: WeddingColors.softCream,
+                  shadows: [
+                    const Shadow(
+                      color: Colors.black54,
+                      offset: Offset(0, 1),
+                      blurRadius: 6,
                     ),
                   ],
-                ),
-                child: Text(
-                  'With the grace of Allah Almighty,\nI heartily invite you '
-                  'to my grandson wedding celebrations',
-                  textAlign: TextAlign.center,
-                  style: WeddingType.script(
-                    size: (dw * 0.062).clamp(19.0, 27.0),
-                    color: WeddingColors.softCream,
-                    shadows: [
-                      const Shadow(
-                        color: Colors.black54,
-                        offset: Offset(0, 1),
-                        blurRadius: 6,
+                );
+                return Opacity(
+                  opacity: panelIn,
+                  child: Transform.translate(
+                    offset: Offset(0, -26 * (1 - panelIn)),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: WeddingColors.deepBurgundy
+                            .withValues(alpha: 0.80),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color:
+                              WeddingColors.gold.withValues(alpha: 0.55),
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.30),
+                            blurRadius: 18,
+                            offset: const Offset(0, 6),
+                          ),
+                        ],
                       ),
-                    ],
+                      child: Stack(
+                        alignment: Alignment.topCenter,
+                        children: [
+                          // Invisible full text reserves the final size so
+                          // the panel never resizes while typing.
+                          Opacity(
+                            opacity: 0,
+                            child: Text(_welcomeMsg,
+                                textAlign: TextAlign.center, style: style),
+                          ),
+                          Text(typed,
+                              textAlign: TextAlign.center, style: style),
+                        ],
+                      ),
+                    ),
                   ),
-                ),
-              ),
+                );
+              }),
             ),
             Positioned(
               left: envLeft,
@@ -288,7 +341,9 @@ class _EnvelopeOverlayState extends State<EnvelopeOverlay>
               top: photoTop + dh * _hintTop,
               child: Opacity(
                 opacity: (1 - _open.value * 4).clamp(0.0, 1.0) *
-                    (0.65 + 0.35 * _pulse.value),
+                    (0.65 + 0.35 * _pulse.value) *
+                    const Interval(0.72, 1.0)
+                        .transform(_entrance.value),
                 child: Center(
                   child: Container(
                     padding: const EdgeInsets.symmetric(

@@ -14,8 +14,8 @@ class RevealOnScroll extends StatefulWidget {
   const RevealOnScroll({
     super.key,
     required this.child,
-    this.duration = const Duration(milliseconds: 750),
-    this.offsetY = 28,
+    this.duration = const Duration(milliseconds: 1150),
+    this.offsetY = 34,
     this.delay = Duration.zero,
   });
 
@@ -53,7 +53,9 @@ class _RevealOnScrollState extends State<RevealOnScroll>
     if (box == null || !box.attached) return;
     final viewportHeight = MediaQuery.of(context).size.height;
     final top = box.localToGlobal(Offset.zero).dy;
-    if (top < viewportHeight * 0.92) {
+    // Start slightly before the element is fully in view, so the entrance
+    // is already flowing as the guest arrives at it.
+    if (top < viewportHeight * 0.88) {
       _revealed = true;
       _position?.removeListener(_check);
       if (widget.delay == Duration.zero) {
@@ -78,9 +80,13 @@ class _RevealOnScrollState extends State<RevealOnScroll>
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, child) {
-        final t = Curves.easeOutCubic.transform(_controller.value);
+        // Long, soft deceleration for the motion; the fade completes a
+        // little earlier so nothing lingers translucent.
+        final t = Curves.easeOutQuint.transform(_controller.value);
+        final fade =
+            Curves.easeOut.transform((_controller.value * 1.4).clamp(0.0, 1.0));
         return Opacity(
-          opacity: t,
+          opacity: fade,
           child: Transform.translate(
             offset: Offset(0, widget.offsetY * (1 - t)),
             child: child,

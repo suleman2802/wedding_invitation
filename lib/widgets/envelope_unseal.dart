@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 
 import '../audio/wedding_audio.dart';
 import '../theme.dart';
-import '../wedding_config.dart';
 
 /// Loading opener modelled on the wrapped-envelope reel: the screen IS a
 /// cream embossed envelope wrap, tied with a burgundy satin ribbon and
@@ -279,28 +278,62 @@ class _EnvelopeUnsealState extends State<EnvelopeUnseal>
                             child: Column(
                               children: [
                                 Text(
-                                  'A letter for you…',
+                                  'You are cordially invited…',
                                   textAlign: TextAlign.center,
                                   style: WeddingType.script(
                                     size: 30,
                                     color: WeddingColors.burgundy,
                                   ),
                                 ),
-                                const SizedBox(height: 12),
+                                const SizedBox(height: 14),
                                 Opacity(
-                                  opacity: 0.55 +
-                                      0.45 *
+                                  opacity: 0.82 +
+                                      0.18 *
                                           math.sin(
                                               idleT * 2 * math.pi),
-                                  child: Text(
-                                    widget.ready || !_pendingOpen
-                                        ? 'TAP THE SEAL TO OPEN'
-                                        : 'ALMOST READY…',
-                                    textAlign: TextAlign.center,
-                                    style: WeddingType.caps(
-                                      size: 11,
-                                      color: WeddingColors.gold,
-                                      letterSpacing: 4,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 18, vertical: 9),
+                                    decoration: BoxDecoration(
+                                      color: WeddingColors.deepBurgundy
+                                          .withValues(alpha: 0.90),
+                                      borderRadius:
+                                          BorderRadius.circular(30),
+                                      border: Border.all(
+                                        color: WeddingColors.gold
+                                            .withValues(alpha: 0.65),
+                                      ),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black
+                                              .withValues(alpha: 0.25),
+                                          blurRadius: 12,
+                                          offset: const Offset(0, 4),
+                                        ),
+                                      ],
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(
+                                            Icons.touch_app_outlined,
+                                            color:
+                                                WeddingColors.softCream,
+                                            size: 16),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          widget.ready || !_pendingOpen
+                                              ? 'TAP THE SEAL TO OPEN'
+                                              : 'ALMOST READY…',
+                                          textAlign: TextAlign.center,
+                                          style: WeddingType.caps(
+                                            size: 12,
+                                            color:
+                                                WeddingColors.softCream,
+                                            letterSpacing: 3,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
                                 ),
@@ -321,51 +354,31 @@ class _EnvelopeUnsealState extends State<EnvelopeUnseal>
   }
 }
 
-/// The couple's wax seal (same family as the envelope flap's seal).
+/// Wax seal with a properly engraved stamp face — dotted ring, curved
+/// "INVITATION" lettering and a botanical rose emblem, all pressed into the
+/// wax with a relief effect.
 class _Seal extends StatelessWidget {
   final double size;
   const _Seal({required this.size});
 
   @override
   Widget build(BuildContext context) {
-    return CustomPaint(
-      painter: const _SealPainter(),
-      child: Center(
-        child: Padding(
-          padding: EdgeInsets.all(size * 0.20),
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Text(
-              WeddingConfig.sealMonogram,
-              maxLines: 1,
-              softWrap: false,
-              style: WeddingType.script(
-                size: 40,
-                color: const Color(0xFFF3D8CD),
-                shadows: const [
-                  Shadow(
-                    color: Color(0xFF3A0616),
-                    offset: Offset(0, 1),
-                    blurRadius: 2,
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
+    return CustomPaint(painter: const _SealPainter());
   }
 }
 
 class _SealPainter extends CustomPainter {
   const _SealPainter();
 
+  static const _face = Color(0xFFF3D8CD);
+  static const _press = Color(0xFF3A0616);
+
   @override
   void paint(Canvas canvas, Size size) {
     final center = size.center(Offset.zero);
     final r = size.width / 2;
 
+    // Poured-wax blob.
     final blob = Path();
     const points = 24;
     final rnd = math.Random(9);
@@ -391,14 +404,156 @@ class _SealPainter extends CustomPainter {
           ],
         ).createShader(Rect.fromCircle(center: center, radius: r)),
     );
+
+    // Pressed stamp bed: a slightly darker disc the design sits in.
     canvas.drawCircle(
       center,
-      r * 0.72,
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.5
-        ..color = const Color(0xFFF3D8CD).withValues(alpha: 0.5),
+      r * 0.78,
+      Paint()..color = _press.withValues(alpha: 0.25),
     );
+
+    // Dotted ring.
+    for (int i = 0; i < 40; i++) {
+      final a = i / 40 * 2 * math.pi;
+      final p = center + Offset(math.cos(a), math.sin(a)) * r * 0.72;
+      _engraveDot(canvas, p, r * 0.020);
+    }
+
+    // Inner solid ring.
+    _engraveCircle(canvas, center, r * 0.62, r * 0.020);
+
+    // Curved lettering along the top arc.
+    _arcText(canvas, center, 'INVITATION', r * 0.455, r * 0.155);
+
+    // Small diamonds flanking the lower arc.
+    for (final side in [-1.0, 1.0]) {
+      final a = math.pi / 2 + side * 0.85;
+      final p = center + Offset(math.cos(a), math.sin(a)) * r * 0.46;
+      _engraveDiamond(canvas, p, r * 0.045);
+    }
+
+    // Central engraved rose: spiral heart + two petal rings.
+    final rc = center.translate(0, r * 0.10);
+    _engraveCircle(canvas, rc, r * 0.055, r * 0.018);
+    for (int i = 0; i < 5; i++) {
+      final a = i / 5 * 2 * math.pi + 0.3;
+      _engraveArc(canvas, rc + Offset(math.cos(a), math.sin(a)) * r * 0.10,
+          r * 0.075, a - 1.9, 2.6, r * 0.018);
+    }
+    for (int i = 0; i < 7; i++) {
+      final a = i / 7 * 2 * math.pi;
+      _engraveArc(canvas, rc + Offset(math.cos(a), math.sin(a)) * r * 0.175,
+          r * 0.085, a - 1.7, 2.2, r * 0.018);
+    }
+    // Leaves either side of the rose.
+    for (final side in [-1.0, 1.0]) {
+      final base = rc + Offset(side * r * 0.30, r * 0.06);
+      _engraveLeaf(canvas, base, side, r);
+    }
+  }
+
+  // --- relief engraving helpers: dark pass offset, then light pass ------
+
+  static const _reliefOffset = Offset(0.9, 1.3);
+
+  void _engraveDot(Canvas c, Offset p, double radius) {
+    c.drawCircle(p + _reliefOffset, radius,
+        Paint()..color = _press.withValues(alpha: 0.7));
+    c.drawCircle(p, radius, Paint()..color = _face);
+  }
+
+  void _engraveCircle(Canvas c, Offset p, double radius, double w) {
+    final dark = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = w
+      ..color = _press.withValues(alpha: 0.7);
+    final light = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = w
+      ..color = _face;
+    c.drawCircle(p + _reliefOffset, radius, dark);
+    c.drawCircle(p, radius, light);
+  }
+
+  void _engraveArc(Canvas c, Offset p, double radius, double start,
+      double sweep, double w) {
+    final rect = Rect.fromCircle(center: p, radius: radius);
+    final dark = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = w
+      ..strokeCap = StrokeCap.round
+      ..color = _press.withValues(alpha: 0.7);
+    final light = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = w
+      ..strokeCap = StrokeCap.round
+      ..color = _face;
+    c.drawArc(rect.shift(_reliefOffset), start, sweep, false, dark);
+    c.drawArc(rect, start, sweep, false, light);
+  }
+
+  void _engraveDiamond(Canvas c, Offset p, double s) {
+    Path d(Offset o) => Path()
+      ..moveTo(o.dx, o.dy - s)
+      ..lineTo(o.dx + s * 0.7, o.dy)
+      ..lineTo(o.dx, o.dy + s)
+      ..lineTo(o.dx - s * 0.7, o.dy)
+      ..close();
+    c.drawPath(
+        d(p + _reliefOffset), Paint()..color = _press.withValues(alpha: 0.7));
+    c.drawPath(d(p), Paint()..color = _face);
+  }
+
+  void _engraveLeaf(Canvas c, Offset base, double side, double r) {
+    Path leaf(Offset o) => Path()
+      ..moveTo(o.dx, o.dy)
+      ..quadraticBezierTo(o.dx + side * r * 0.10, o.dy - r * 0.10,
+          o.dx + side * r * 0.20, o.dy - r * 0.05)
+      ..quadraticBezierTo(o.dx + side * r * 0.10, o.dy + r * 0.02,
+          o.dx, o.dy)
+      ..close();
+    c.drawPath(leaf(base + _reliefOffset),
+        Paint()..color = _press.withValues(alpha: 0.7));
+    c.drawPath(
+        leaf(base),
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = r * 0.016
+          ..color = _face);
+  }
+
+  void _arcText(Canvas canvas, Offset center, String text, double radius,
+      double fontSize) {
+    const arc = 2.4; // radians spanned by the whole word
+    final step = arc / (text.length - 1);
+    for (int i = 0; i < text.length; i++) {
+      final a = -arc / 2 + i * step; // 0 = straight up
+      final pos = center +
+          Offset(math.sin(a) * radius, -math.cos(a) * radius);
+      canvas.save();
+      canvas.translate(pos.dx, pos.dy);
+      canvas.rotate(a);
+      for (final (offset, color) in [
+        (_reliefOffset, _press.withValues(alpha: 0.7)),
+        (Offset.zero, _face),
+      ]) {
+        final tp = TextPainter(
+          text: TextSpan(
+            text: text[i],
+            style: TextStyle(
+              fontSize: fontSize,
+              fontWeight: FontWeight.w700,
+              fontFamily: 'serif',
+              color: color,
+            ),
+          ),
+          textDirection: TextDirection.ltr,
+        )..layout();
+        tp.paint(
+            canvas, offset + Offset(-tp.width / 2, -tp.height / 2));
+      }
+      canvas.restore();
+    }
   }
 
   @override

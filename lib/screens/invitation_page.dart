@@ -525,8 +525,8 @@ class _ScheduleTimelineState extends State<_ScheduleTimeline> {
       children: [
         for (var i = 0; i < items.length; i++)
           RevealOnScroll(
-            delay: Duration(milliseconds: 70 * i),
-            offsetY: 18,
+            delay: Duration(milliseconds: 110 * i),
+            offsetY: 24,
             child: _buildRow(i, items, color),
           ),
       ],
