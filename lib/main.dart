@@ -6,6 +6,7 @@ import 'screens/envelope_screen.dart';
 import 'screens/invitation_page.dart';
 import 'theme.dart';
 import 'wedding_config.dart';
+import 'widgets/card_video.dart';
 import 'widgets/envelope_unseal.dart';
 
 void main() {
@@ -100,7 +101,11 @@ class _RootState extends State<_Root> {
         const InvitationPage(),
         if (!_opened)
           EnvelopeOverlay(
-            onOpened: () => setState(() => _opened = true),
+            onOpened: () {
+              setState(() => _opened = true);
+              // Start the invitation-card animation as the page appears.
+              CardVideo.play();
+            },
           ),
         if (!_veilGone)
           EnvelopeUnseal(

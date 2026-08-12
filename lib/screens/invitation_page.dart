@@ -3,6 +3,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../audio/wedding_audio.dart';
 import '../theme.dart';
+import '../widgets/card_video.dart';
 import '../wedding_config.dart';
 import '../widgets/countdown.dart';
 import '../widgets/couple_illustration.dart';
@@ -37,6 +38,20 @@ class InvitationPage extends StatelessWidget {
               child: Column(
                 children: [
                   const _HeroSection(),
+                  // Torn maroon band carrying just the section heading.
+                  TornSection(
+                    color: WeddingColors.burgundy,
+                    seed: 9,
+                    padding:
+                        const EdgeInsets.symmetric(vertical: 46, horizontal: 28),
+                    child: RevealOnScroll(
+                      child: Text(
+                        'Marriage in Islam',
+                        style: WeddingType.script(size: 36),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
                   const _IslamicSection(),
                   TornSection(
                     color: WeddingColors.burgundy,
@@ -110,189 +125,27 @@ class _MusicButton extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// Hero
+// Hero: the animated invitation card video
 // ---------------------------------------------------------------------------
 
-class _HeroSection extends StatefulWidget {
+class _HeroSection extends StatelessWidget {
   const _HeroSection();
 
   @override
-  State<_HeroSection> createState() => _HeroSectionState();
-}
-
-class _HeroSectionState extends State<_HeroSection> {
-  ScrollPosition? _position;
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _position = Scrollable.maybeOf(context)?.position;
-  }
-
-  double get _scroll => (_position?.pixels ?? 0).clamp(0.0, 900.0);
-
-  @override
   Widget build(BuildContext context) {
-    final height = MediaQuery.of(context).size.height;
-    return SizedBox(
-      height: (height * 0.92).clamp(560.0, 820.0),
-      width: double.infinity,
+    // Native aspect ratio of assets/invitation/invitation_card.mp4.
+    return const AspectRatio(
+      aspectRatio: 396 / 558,
       child: Stack(
         fit: StackFit.expand,
         children: [
-          // Dusk-sky watercolour gradient.
-          const DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Color(0xFF6D7FA3),
-                  Color(0xFF93A0BC),
-                  Color(0xFFC5B6BC),
-                  Color(0xFFE8D3C3),
-                ],
-                stops: [0.0, 0.38, 0.72, 1.0],
-              ),
-            ),
-          ),
-          // Soft breathing glow behind the names.
-          Align(
-            alignment: const Alignment(0, -0.1),
-            child: GentleFloat(
-              dy: 0,
-              scale: 0.08,
-              period: const Duration(seconds: 6),
-              child: Container(
-                width: 320,
-                height: 320,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: RadialGradient(
-                    colors: [
-                      Colors.white.withValues(alpha: 0.30),
-                      Colors.white.withValues(alpha: 0.0),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-          const PetalRain(count: 18),
-          // Text layers drift at different speeds while scrolling away,
-          // giving the hero a sense of depth.
-          AnimatedBuilder(
-            animation: _position ?? const AlwaysStoppedAnimation<double>(0),
-            builder: (context, _) => Column(
-              children: [
-                const SizedBox(height: 48),
-                Transform.translate(
-                  offset: Offset(0, _scroll * 0.42),
-                  child: Column(
-                    children: [
-                      Text(
-                        'بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيْمِ',
-                        textDirection: TextDirection.rtl,
-                        style: WeddingType.arabic(
-                          size: 24,
-                          color: Colors.white,
-                          shadows: _textShadow,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      Text(
-                        'Wedding Days',
-                        style: WeddingType.script(
-                          size: 34,
-                          shadows: _textShadow,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        '22 · 24 · 25 OCTOBER 2026',
-                        style: WeddingType.caps(
-                          size: 14,
-                          color: Colors.white,
-                          letterSpacing: 4,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const Spacer(),
-                Transform.translate(
-                  offset: Offset(0, _scroll * 0.26),
-                  child: Column(
-                    children: [
-                      _heroName(WeddingConfig.groomName),
-                      const SizedBox(height: 6),
-                      _parentLine('SON OF ${WeddingConfig.groomFatherName}'),
-                      const SizedBox(height: 10),
-                      Text(
-                        '&',
-                        style: WeddingType.script(
-                          size: 36,
-                          shadows: _textShadow,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      _heroName(WeddingConfig.brideName),
-                      const SizedBox(height: 6),
-                      _parentLine(
-                        'DAUGHTER OF ${WeddingConfig.brideFatherName}',
-                      ),
-                    ],
-                  ),
-                ),
-                const Spacer(flex: 2),
-              ],
-            ),
-          ),
-          // Floral band anchored to the bottom edge.
-          const Align(
-            alignment: Alignment.bottomCenter,
-            child: FlowerBand(height: 170),
-          ),
+          CardVideo(),
+          // Falling petals drifting over the card.
+          PetalRain(count: 14),
         ],
       ),
     );
   }
-
-  /// "Son of / Daughter of" line under each name.
-  Widget _parentLine(String text) {
-    return Text(
-      text,
-      textAlign: TextAlign.center,
-      style: WeddingType.caps(
-        size: 12,
-        color: Colors.white.withValues(alpha: 0.92),
-        letterSpacing: 3,
-      ).copyWith(shadows: _textShadow),
-    );
-  }
-
-  /// Full name in script, scaled down if it is too wide for the screen.
-  Widget _heroName(String name) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: FittedBox(
-        fit: BoxFit.scaleDown,
-        child: Text(
-          name,
-          maxLines: 1,
-          style: WeddingType.script(size: 58, shadows: _textShadow),
-        ),
-      ),
-    );
-  }
-
-  static final List<Shadow> _textShadow = [
-    Shadow(
-      color: const Color(0xFF2E3A55).withValues(alpha: 0.55),
-      offset: const Offset(0, 2),
-      blurRadius: 10,
-    ),
-  ];
 }
 
 // ---------------------------------------------------------------------------
@@ -305,21 +158,10 @@ class _IslamicSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 56, horizontal: 30),
+      padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 30),
       child: RevealOnScroll(
         child: Column(
           children: [
-            Text(
-              'Marriage in Islam',
-              style: WeddingType.script(
-                size: 34,
-                color: WeddingColors.burgundy,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 22),
-            const OrnamentDivider(),
-            const SizedBox(height: 26),
             Text(
               'إِذَا تَزَوَّجَ الْعَبْدُ فَقَدِ اسْتَكْمَلَ نِصْفَ الدِّينِ، فَلْيَتَّقِ اللهَ فِي النِّصْفِ الْبَاقِي',
               textDirection: TextDirection.rtl,
