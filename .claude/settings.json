@@ -8,7 +8,24 @@
       "Bash(python3 -c ' *)",
       "Bash(file /Users/suleman/Documents/wedding_invite/wedding_invitation_app/assets/couple/couple.*)",
       "Bash(mv couples.png couple.png)",
-      "Bash(python3 -m http.server 8660)"
+      "Bash(python3 -m http.server 8660)",
+      "Bash(ffmpeg -version)",
+      "Bash(python3 -c \"import cv2; print\\('opencv', cv2.__version__, 'ready'\\)\")",
+      "Read(//Users/suleman/Documents/wedding_invite/**)",
+      "Read(//Users/suleman/Downloads/**)",
+      "Bash(rm -f ~/flutter/bin/cache/lockfile 2>/dev/null; pgrep -fl \"flutter_tester|flutter test\" | head -3; flutter test test/render_gift_tool_test.dart 2>&1 | tail -1)",
+      "Bash(find /Users/suleman/Documents/wedding_invite ~/Downloads -maxdepth 3 -iname \"*video2*\" 2>/dev/null | head -3)",
+      "Bash(rm -f ~/flutter/bin/cache/lockfile)",
+      "Bash(pkill -f flutter_tester)",
+      "Bash(awk '{print $2, $11, $12, $13}')",
+      "Bash(echo \"exit=$?\")",
+      "Bash(cd /var/folders/3z/yw1z30wn0pv7xfn5nx7wym8w0000gn/T && ls -ld flutter_tools.* 2>/dev/null; echo \"---inuse?---\"; lsof +D flutter_tools.jEsM3v 2>/dev/null | head -3 || echo \"jEsM3v: no open files\")",
+      "Read(//private/var/folders/3z/yw1z30wn0pv7xfn5nx7wym8w0000gn/T/**)",
+      "Bash(rm -rf /var/folders/3z/yw1z30wn0pv7xfn5nx7wym8w0000gn/T/flutter_tools.kIJlCg /var/folders/3z/yw1z30wn0pv7xfn5nx7wym8w0000gn/T/flutter_tools.UheTJ9 \"/private/tmp/claude-501/-Users-suleman-Documents-wedding-invite-wedding-invitation-app/b1070438-9c01-4364-bfdd-18920441a69a/scratchpad/reel\" \"/private/tmp/claude-501/-Users-suleman-Documents-wedding-invite-wedding-invitation-app/b1070438-9c01-4364-bfdd-18920441a69a/scratchpad/reel2\" \"/private/tmp/claude-501/-Users-suleman-Documents-wedding-invite-wedding-invitation-app/b1070438-9c01-4364-bfdd-18920441a69a/scratchpad/pixabay.html\" \"/private/tmp/claude-501/-Users-suleman-Documents-wedding-invite-wedding-invitation-app/b1070438-9c01-4364-bfdd-18920441a69a/scratchpad/testlog.txt\" && df -h / | tail -1)"
+    ],
+    "additionalDirectories": [
+      "/Users/suleman/flutter/bin/cache",
+      "/private/var/folders/3z/yw1z30wn0pv7xfn5nx7wym8w0000gn/T/flutter_tools.kIJlCg"
     ]
   }
 }
