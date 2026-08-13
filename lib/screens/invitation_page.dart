@@ -42,8 +42,10 @@ class InvitationPage extends StatelessWidget {
                   TornSection(
                     color: WeddingColors.burgundy,
                     seed: 9,
-                    padding:
-                        const EdgeInsets.symmetric(vertical: 46, horizontal: 28),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 46,
+                      horizontal: 28,
+                    ),
                     child: RevealOnScroll(
                       child: Text(
                         'Marriage in Islam',
@@ -258,22 +260,105 @@ class _CountdownSection extends StatelessWidget {
       child: RevealOnScroll(
         child: Column(
           children: [
-            Text(
-              'The Celebration Begins In',
-              style: WeddingType.script(
-                size: 34,
-                color: WeddingColors.burgundy,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 28),
-            CountdownTimer(target: WeddingConfig.countdownTarget),
+            ..._content(),
             const SizedBox(height: 18),
             const OrnamentDivider(),
           ],
         ),
       ),
     );
+  }
+
+  /// Date-aware content: countdown before the wedding, "today is…" on each
+  /// event day, "up next" between events, and a thank-you afterwards.
+  List<Widget> _content() {
+    DateTime dayOf(DateTime d) => DateTime(d.year, d.month, d.day);
+    final now = DateTime.now();
+    final today = dayOf(now);
+    final events = WeddingConfig.events;
+    final firstDay = dayOf(events.first.startsAt);
+    final lastDay = dayOf(events.last.startsAt);
+
+    Widget script(String text, {double size = 34}) => Text(
+          text,
+          style: WeddingType.script(size: size, color: WeddingColors.burgundy),
+          textAlign: TextAlign.center,
+        );
+    Widget caps(String text) => Text(
+          text,
+          style: WeddingType.caps(
+            size: 13,
+            color: WeddingColors.gold,
+            letterSpacing: 4,
+          ),
+          textAlign: TextAlign.center,
+        );
+
+    // All celebrations concluded.
+    if (today.isAfter(lastDay)) {
+      return [
+        script('The Celebrations Have Concluded'),
+        const SizedBox(height: 16),
+        Text(
+          'Thank you for visiting — and for all your love, '
+          'prayers and good wishes.',
+          style: WeddingType.serif(size: 18),
+          textAlign: TextAlign.center,
+        ),
+      ];
+    }
+
+    // One of the event days.
+    for (final e in events) {
+      if (dayOf(e.startsAt) == today) {
+        return [
+          script('The Celebration Has Begun!'),
+          const SizedBox(height: 18),
+          caps('TODAY IS THE'),
+          const SizedBox(height: 6),
+          script(e.name, size: 44),
+          const SizedBox(height: 10),
+          Text(
+            e.tagline,
+            style: WeddingType.serif(size: 17),
+            textAlign: TextAlign.center,
+          ),
+        ];
+      }
+    }
+
+    // A gap day between events.
+    if (!today.isBefore(firstDay)) {
+      final next =
+          events.firstWhere((e) => dayOf(e.startsAt).isAfter(today));
+      return [
+        script('The Celebrations Are On!'),
+        const SizedBox(height: 18),
+        caps('UP NEXT'),
+        const SizedBox(height: 6),
+        script(next.name, size: 44),
+        const SizedBox(height: 10),
+        Text(
+          '${next.dateLabel} — in sha Allah',
+          style: WeddingType.serif(size: 17),
+          textAlign: TextAlign.center,
+        ),
+      ];
+    }
+
+    // Before the wedding: the countdown.
+    return [
+      script('The Celebration Begins In'),
+      const SizedBox(height: 14),
+      Text(
+        'إِنْ شَاءَ الله',
+        textDirection: TextDirection.rtl,
+        textAlign: TextAlign.center,
+        style: WeddingType.arabic(size: 24, color: WeddingColors.gold),
+      ),
+      const SizedBox(height: 20),
+      CountdownTimer(target: WeddingConfig.countdownTarget),
+    ];
   }
 }
 
