@@ -45,7 +45,8 @@ class _RootState extends State<_Root> {
   bool _preloadStarted = false;
 
   static const List<String> _criticalImages = [
-    'assets/grandparents/grandfather_new_image.png',
+    'assets/grandparents/grandfather_new_image.webp',
+    'assets/grandparents/grandfather_blur.webp',
     'assets/flowers/flower1.webp',
     'assets/flowers/flower2.webp',
     'assets/flowers/flower3.webp',

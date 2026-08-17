@@ -33,8 +33,48 @@
 
   <title>Suleman's Wedding Invitation</title>
   <link rel="manifest" href="manifest.json">
+  <style>
+    /* Instant splash shown while the Flutter engine downloads. */
+    #splash {
+      position: fixed; inset: 0; z-index: 9999;
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; gap: 28px;
+      background: linear-gradient(#35061A, #490A21, #61102E);
+      transition: opacity .5s ease;
+    }
+    #splash .ring {
+      width: 66px; height: 66px; border-radius: 50%;
+      border: 2px solid rgba(201, 162, 75, .85);
+      display: flex; align-items: center; justify-content: center;
+      animation: splash-pulse 2.4s ease-in-out infinite;
+    }
+    #splash .ring::after {
+      content: ''; width: 10px; height: 10px; border-radius: 50%;
+      background: #C9A24B;
+    }
+    #splash .dots { display: flex; gap: 10px; }
+    #splash .dots i {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: #C9A24B; opacity: .35;
+      animation: splash-blink 1.4s infinite;
+    }
+    #splash .dots i:nth-child(2) { animation-delay: .2s; }
+    #splash .dots i:nth-child(3) { animation-delay: .4s; }
+    @keyframes splash-blink { 50% { opacity: 1; } }
+    @keyframes splash-pulse { 50% { transform: scale(1.12); } }
+  </style>
 </head>
 <body>
+  <div id="splash">
+    <div class="ring"></div>
+    <div class="dots"><i></i><i></i><i></i></div>
+  </div>
+  <script>
+    window.addEventListener('flutter-first-frame', function () {
+      var s = document.getElementById('splash');
+      if (s) { s.style.opacity = '0'; setTimeout(function () { s.remove(); }, 550); }
+    });
+  </script>
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>

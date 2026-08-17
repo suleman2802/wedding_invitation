@@ -26,6 +26,7 @@ class WeddingConfig {
     ContactPerson(name: 'Rizwan Ahmad', phone: '+92 300 964 3759'),
     ContactPerson(name: 'Suleman Ahmad', phone: '+92 318 448 2240'),
     ContactPerson(name: 'Saad Ahmad', phone: '+92 327 861 1339'),
+     ContactPerson(name: 'Dawood Ahmad', phone: '+92 345 250 5859'),
   ];
 
   /// WhatsApp number used by the RSVP button (digits only, country code first).

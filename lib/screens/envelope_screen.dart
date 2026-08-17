@@ -1,5 +1,4 @@
 import 'dart:math' as math;
-import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -110,7 +109,7 @@ class _EnvelopeOverlayState extends State<EnvelopeOverlay>
 
   /// Photo of the grandfather holding the envelope, used as the intro scene.
   static const String _photoAsset =
-      'assets/grandparents/grandfather_new_image.png';
+      'assets/grandparents/grandfather_new_image.webp';
 
   /// Photo dimensions and the envelope's position inside it, as fractions of
   /// the image — measured from the actual picture so the interactive envelope
@@ -228,23 +227,14 @@ class _EnvelopeOverlayState extends State<EnvelopeOverlay>
 
         return Stack(
           children: [
-            // Blurred, darkened copy of the photo fills the whole screen so
-            // there are no hard letterbox bars around the portrait.
+            // Pre-blurred, pre-darkened backdrop (tiny asset scaled up) so
+            // there are no hard letterbox bars — and no runtime GPU blur,
+            // which Safari and budget phones struggle with.
             Positioned.fill(
-              child: RepaintBoundary(
-                child: ImageFiltered(
-                  imageFilter: ui.ImageFilter.blur(sigmaX: 22, sigmaY: 22),
-                  child: Image.asset(
-                    _photoAsset,
-                    fit: BoxFit.cover,
-                    filterQuality: FilterQuality.low,
-                  ),
-                ),
-              ),
-            ),
-            Positioned.fill(
-              child: ColoredBox(
-                color: WeddingColors.darkestBurgundy.withValues(alpha: 0.55),
+              child: Image.asset(
+                'assets/grandparents/grandfather_blur.webp',
+                fit: BoxFit.cover,
+                filterQuality: FilterQuality.low,
               ),
             ),
             // The portrait itself.
